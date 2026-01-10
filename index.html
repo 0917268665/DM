@@ -69,10 +69,9 @@
         }
 
         .modal-header { background: #2c3e50; color: white; }
-        .price-loading { display: none; text-align: center; color: #666; margin: 20px 0; }
         .commission-box { display: none; background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; }
         
-        /* 警語 Modal 樣式：確保它顯示在最上層 */
+        /* 警語 Modal 樣式 */
         .warning-modal-header { background-color: #dc3545; color: white; }
     </style>
 </head>
@@ -143,7 +142,7 @@
                             📥 下載 Word 行程
                         </a>
                     </div>
-                    <div class="col-12 text-end mt-1">
+                    <div class="col-12 text-start mt-1">
                         <small class="text-muted" style="font-size: 0.8rem;">(手機請點擊「下載DM」後，長按圖片儲存)</small>
                     </div>
                 </div>
@@ -170,27 +169,13 @@
                 </div>
 
                 <h5 class="mt-4 mb-3 border-start border-4 border-primary ps-2">📅 出發日與售價</h5>
-                
-                <div id="loading-spinner" class="price-loading">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">正在讀取最新價格...</p>
+                <div class="d-grid gap-2">
+                    <a id="m-official-link" href="#" target="_blank" class="btn btn-primary btn-lg shadow-sm">
+                        👉 前往官網查看最新出發日與售價
+                    </a>
+                    <small class="text-muted text-center">點擊將開啟新魅力旅遊官方網頁，查看即時報名狀況</small>
                 </div>
-                
-                <div id="error-msg" class="alert alert-warning" style="display:none;"></div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="price-table" style="display:none;">
-                        <thead class="table-light">
-                            <tr>
-                                <th>出發日期</th>
-                                <th>直售價</th>
-                            </tr>
-                        </thead>
-                        <tbody id="price-tbody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                <div class="mb-4"></div> </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
             </div>
@@ -203,15 +188,14 @@
 
 <script>
     // ==========================================
-    // 1. 設定區：請確認 Google Sheet CSV 連結正確
+    // 1. 設定區：你的 Google Sheet CSV 連結
     // ==========================================
     const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
 
-    // 輔助函式：連結處理
+    // 輔助函式
     function convertToDirectLink(url, isImage = false) {
         if (!url) return "#";
         if (url.startsWith("./") || url.startsWith("/")) return url;
-
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
@@ -281,17 +265,19 @@
         document.getElementById('m-id').innerText = currentTour.id;
         document.getElementById('m-remark').innerText = currentTour.remark;
 
+        // 圖片處理
         const directImgLink = convertToDirectLink(currentTour.img, true);
         document.getElementById('m-preview-img').src = directImgLink; 
 
+        // DM 下載按鈕
         const dmBtn = document.getElementById('m-dm-download');
         dmBtn.href = directImgLink;
         dmBtn.setAttribute("target", "_blank");
 
+        // Word 下載按鈕
         const directDocLink = convertToDirectLink(currentTour.doc_link, false);
         const docBtn = document.getElementById('m-doc');
         docBtn.href = directDocLink;
-        
         if(currentTour.doc_link.startsWith("./") || currentTour.doc_link.startsWith("http")) {
              docBtn.setAttribute("download", ""); 
              docBtn.setAttribute("target", "_blank");
@@ -299,19 +285,25 @@
              docBtn.setAttribute("target", "_blank");
         }
 
+        // NET/佣金顯示
         document.getElementById('m-commission-box').style.display = 'none';
         document.getElementById('m-commission').innerText = currentTour.commission;
-        
-        // 重置並開始抓取價格
-        resetPriceArea();
-        modal.show();
-        
-        // 呼叫新版抓取函式
+
+        // ★★★ 官網按鈕連結設定 ★★★
+        const officialBtn = document.getElementById('m-official-link');
         if (currentTour.company_prod_no) {
-            fetchCompanyPrices(currentTour.company_prod_no);
+            // 組合公司官網連結
+            officialBtn.href = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${currentTour.company_prod_no}`;
+            officialBtn.classList.remove('disabled');
+            officialBtn.innerText = "👉 前往官網查看最新出發日與售價";
         } else {
-            showPriceError("未設定公司產品代號，無法抓取價格。");
+            // 如果 Excel 沒填代號，就鎖住按鈕
+            officialBtn.href = "#";
+            officialBtn.classList.add('disabled');
+            officialBtn.innerText = "未設定官網連結";
         }
+        
+        modal.show();
     }
 
     function unlockCommission() {
@@ -320,96 +312,6 @@
             document.getElementById('m-commission-box').style.display = 'block';
         } else if (pwd !== null) {
             alert("密碼錯誤");
-        }
-    }
-
-    function resetPriceArea() {
-        document.getElementById('loading-spinner').style.display = 'block';
-        document.getElementById('price-table').style.display = 'none';
-        document.getElementById('error-msg').style.display = 'none';
-        document.getElementById('price-tbody').innerHTML = '';
-    }
-
-    function showPriceError(msg) {
-        document.getElementById('loading-spinner').style.display = 'none';
-        document.getElementById('error-msg').innerText = msg;
-        document.getElementById('error-msg').style.display = 'block';
-    }
-
-    // ==========================================
-    // ★ 重點更新：從公司網站抓取真實價格
-    // ==========================================
-    async function fetchCompanyPrices(prodNo) {
-        // 1. 組合公司網址
-        const targetUrl = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${prodNo}`;
-        // 2. 使用 AllOrigins 代理伺服器繞過 CORS 限制
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-
-        try {
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            
-            if (!data.contents) throw new Error("無法讀取目標網頁");
-
-            // 3. 解析 HTML
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, "text/html");
-
-            // 4. 尋找價格表格
-            // 策略：找出所有 tr，檢查是否包含日期格式 (YYYY/MM/DD) 且同列有價格 ($)
-            const rows = doc.querySelectorAll('tr');
-            let foundData = [];
-
-            rows.forEach(row => {
-                const text = row.innerText;
-                // 簡單的正則表達式：尋找類似 202x/xx/xx 的日期格式
-                const dateMatch = text.match(/20\d{2}\/\d{2}\/\d{2}/); 
-                
-                // 如果這一行有日期，嘗試抓取價格
-                if (dateMatch) {
-                    const cells = row.querySelectorAll('td');
-                    // 根據您的截圖，日期在第1格(index 0)，價格在第3格(index 2)
-                    // 但為了保險，我們抓取整行包含 '$' 或數字的欄位
-                    let price = "請洽業務";
-                    
-                    // 遍歷這一行的格子找價格
-                    cells.forEach(cell => {
-                        const cellText = cell.innerText.trim();
-                        // 如果包含 $ 或是純數字且大於 1000
-                        if (cellText.includes("$") || (parseInt(cellText.replace(/,/g, '')) > 1000)) {
-                             // 排除掉年份 (2026) 被誤判成價格的情況
-                             if (!cellText.includes("/")) { 
-                                 price = cellText;
-                             }
-                        }
-                    });
-
-                    // 確保抓到的不是標題列 (檢查是否真的有日期)
-                    foundData.push({
-                        date: dateMatch[0],
-                        price: price
-                    });
-                }
-            });
-
-            // 5. 顯示資料
-            if (foundData.length > 0) {
-                const tbody = document.getElementById('price-tbody');
-                // 只顯示前 10 筆，避免太長
-                foundData.slice(0, 15).forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${item.date}</td><td class="text-danger fw-bold">${item.price}</td>`;
-                    tbody.appendChild(tr);
-                });
-                document.getElementById('loading-spinner').style.display = 'none';
-                document.getElementById('price-table').style.display = 'table';
-            } else {
-                showPriceError("查無可報名日期，或需點擊連結查看詳細。");
-            }
-
-        } catch (error) {
-            console.error(error);
-            showPriceError("連線公司網站失敗，請直接點擊上方 Word 行程查看。");
         }
     }
 </script>
