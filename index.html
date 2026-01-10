@@ -203,50 +203,33 @@
 
 <script>
     // ==========================================
-    // 1. 設定區：你的 Google Sheet CSV 連結
+    // 1. 設定區：請確認 Google Sheet CSV 連結正確
     // ==========================================
     const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
 
-    // ==========================================
-    // 2. 輔助函式：轉換 Google Drive 連結為直接圖片/下載
-    // ==========================================
+    // 輔助函式：連結處理
     function convertToDirectLink(url, isImage = false) {
         if (!url) return "#";
-        
-        // 判斷是否為 Google Drive 連結
+        if (url.startsWith("./") || url.startsWith("/")) return url;
+
         if (url.includes("drive.google.com")) {
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
-                if (isImage) {
-                    // 圖片：使用 uc?export=view 比較容易在瀏覽器直接顯示圖片 (適合長按儲存)
-                    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-                } else {
-                    // 文件：強制下載
-                    return `https://docs.google.com/uc?export=download&id=${match[1]}`;
-                }
+                return isImage 
+                    ? `https://drive.google.com/uc?export=view&id=${match[1]}`
+                    : `https://docs.google.com/uc?export=download&id=${match[1]}`;
             }
         }
         return url; 
     }
 
-    // ==========================================
-    // 3. 程式邏輯區
-    // ==========================================
     const tourList = document.getElementById('tour-list');
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
     let TOURS = [];
 
-    // 網頁載入時
     document.addEventListener("DOMContentLoaded", function() {
-        // A. 顯示警語
         warningModal.show();
-
-        // B. 抓取資料
-        if(googleSheetUrl.includes("請將這裡")) {
-            alert("提醒：請在程式碼中貼上正確的 Google Sheet CSV 連結");
-            return;
-        }
         fetchData();
     });
 
@@ -255,8 +238,7 @@
             download: true,
             header: true,
             complete: function(results) {
-                TOURS = results.data;
-                TOURS = TOURS.filter(item => item.id && item.title); 
+                TOURS = results.data.filter(item => item.id && item.title);
                 renderTours();
             },
             error: function(err) {
@@ -268,11 +250,8 @@
 
     function renderTours() {
         tourList.innerHTML = "";
-        
         TOURS.forEach((tour, index) => {
-            // 列表圖片也支援 Google Drive 連結
             const imgSrc = convertToDirectLink(tour.img, true);
-
             const col = document.createElement('div');
             col.className = 'col-lg-3 col-md-4 col-sm-6'; 
             col.innerHTML = `
@@ -302,32 +281,37 @@
         document.getElementById('m-id').innerText = currentTour.id;
         document.getElementById('m-remark').innerText = currentTour.remark;
 
-        // 處理預覽圖片 (支援 Google Drive)
         const directImgLink = convertToDirectLink(currentTour.img, true);
         document.getElementById('m-preview-img').src = directImgLink; 
 
-        // 處理 Word 下載連結 (文件模式)
-        const directDocLink = convertToDirectLink(currentTour.doc_link, false);
-        const docBtn = document.getElementById('m-doc');
-        docBtn.href = directDocLink;
-        docBtn.setAttribute("target", "_blank"); 
-        
-        if(directDocLink.includes("export=download")) {
-            docBtn.setAttribute("download", "");
-        } else {
-             docBtn.removeAttribute("download");
-        }
-        
-        // 處理 DM 圖片下載連結 (圖片模式)
         const dmBtn = document.getElementById('m-dm-download');
         dmBtn.href = directImgLink;
         dmBtn.setAttribute("target", "_blank");
 
+        const directDocLink = convertToDirectLink(currentTour.doc_link, false);
+        const docBtn = document.getElementById('m-doc');
+        docBtn.href = directDocLink;
+        
+        if(currentTour.doc_link.startsWith("./") || currentTour.doc_link.startsWith("http")) {
+             docBtn.setAttribute("download", ""); 
+             docBtn.setAttribute("target", "_blank");
+        } else {
+             docBtn.setAttribute("target", "_blank");
+        }
+
         document.getElementById('m-commission-box').style.display = 'none';
         document.getElementById('m-commission').innerText = currentTour.commission;
+        
+        // 重置並開始抓取價格
         resetPriceArea();
         modal.show();
-        fetchPrices(currentTour.company_prod_no);
+        
+        // 呼叫新版抓取函式
+        if (currentTour.company_prod_no) {
+            fetchCompanyPrices(currentTour.company_prod_no);
+        } else {
+            showPriceError("未設定公司產品代號，無法抓取價格。");
+        }
     }
 
     function unlockCommission() {
@@ -346,24 +330,87 @@
         document.getElementById('price-tbody').innerHTML = '';
     }
 
-    async function fetchPrices(prodNo) {
-        setTimeout(() => {
-            const mockData = [
-                { date: "2025/11/20", price: "29,900" },
-                { date: "2025/12/05", price: "32,900" },
-                { date: "2025/12/12", price: "35,900" },
-                { date: "2026/01/23", price: "45,900" }
-            ];
-            const tbody = document.getElementById('price-tbody');
-            tbody.innerHTML = ""; 
-            mockData.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${item.date}</td><td class="text-danger fw-bold">$${item.price}</td>`;
-                tbody.appendChild(tr);
+    function showPriceError(msg) {
+        document.getElementById('loading-spinner').style.display = 'none';
+        document.getElementById('error-msg').innerText = msg;
+        document.getElementById('error-msg').style.display = 'block';
+    }
+
+    // ==========================================
+    // ★ 重點更新：從公司網站抓取真實價格
+    // ==========================================
+    async function fetchCompanyPrices(prodNo) {
+        // 1. 組合公司網址
+        const targetUrl = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${prodNo}`;
+        // 2. 使用 AllOrigins 代理伺服器繞過 CORS 限制
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+        try {
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            
+            if (!data.contents) throw new Error("無法讀取目標網頁");
+
+            // 3. 解析 HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, "text/html");
+
+            // 4. 尋找價格表格
+            // 策略：找出所有 tr，檢查是否包含日期格式 (YYYY/MM/DD) 且同列有價格 ($)
+            const rows = doc.querySelectorAll('tr');
+            let foundData = [];
+
+            rows.forEach(row => {
+                const text = row.innerText;
+                // 簡單的正則表達式：尋找類似 202x/xx/xx 的日期格式
+                const dateMatch = text.match(/20\d{2}\/\d{2}\/\d{2}/); 
+                
+                // 如果這一行有日期，嘗試抓取價格
+                if (dateMatch) {
+                    const cells = row.querySelectorAll('td');
+                    // 根據您的截圖，日期在第1格(index 0)，價格在第3格(index 2)
+                    // 但為了保險，我們抓取整行包含 '$' 或數字的欄位
+                    let price = "請洽業務";
+                    
+                    // 遍歷這一行的格子找價格
+                    cells.forEach(cell => {
+                        const cellText = cell.innerText.trim();
+                        // 如果包含 $ 或是純數字且大於 1000
+                        if (cellText.includes("$") || (parseInt(cellText.replace(/,/g, '')) > 1000)) {
+                             // 排除掉年份 (2026) 被誤判成價格的情況
+                             if (!cellText.includes("/")) { 
+                                 price = cellText;
+                             }
+                        }
+                    });
+
+                    // 確保抓到的不是標題列 (檢查是否真的有日期)
+                    foundData.push({
+                        date: dateMatch[0],
+                        price: price
+                    });
+                }
             });
-            document.getElementById('loading-spinner').style.display = 'none';
-            document.getElementById('price-table').style.display = 'table';
-        }, 600);
+
+            // 5. 顯示資料
+            if (foundData.length > 0) {
+                const tbody = document.getElementById('price-tbody');
+                // 只顯示前 10 筆，避免太長
+                foundData.slice(0, 15).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${item.date}</td><td class="text-danger fw-bold">${item.price}</td>`;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('price-table').style.display = 'table';
+            } else {
+                showPriceError("查無可報名日期，或需點擊連結查看詳細。");
+            }
+
+        } catch (error) {
+            console.error(error);
+            showPriceError("連線公司網站失敗，請直接點擊上方 Word 行程查看。");
+        }
     }
 </script>
 </body>
