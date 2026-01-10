@@ -191,4 +191,139 @@
         if (!url) return "#";
         
         // 判斷是否為 Google Drive 連結
-        if (url.includes("
+        if (url.includes("drive.google.com")) {
+            // 嘗試抓取 ID (檔案 ID 通常在 /d/ 之後)
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                // 轉換成強制下載的 API 網址
+                return `https://docs.google.com/uc?export=download&id=${match[1]}`;
+            }
+        }
+        return url; // 如果不是 Google Drive 連結，就回傳原本的
+    }
+
+    // ==========================================
+    // 3. 程式邏輯區
+    // ==========================================
+    const tourList = document.getElementById('tour-list');
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    let TOURS = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if(googleSheetUrl.includes("請將這裡")) {
+            alert("提醒：請在程式碼中貼上正確的 Google Sheet CSV 連結");
+            return;
+        }
+        fetchData();
+    });
+
+    function fetchData() {
+        Papa.parse(googleSheetUrl, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                TOURS = results.data;
+                TOURS = TOURS.filter(item => item.id && item.title); 
+                renderTours();
+            },
+            error: function(err) {
+                console.error("讀取 Excel 失敗:", err);
+                tourList.innerHTML = `<div class="alert alert-danger">無法讀取行程資料，請檢查網路或連結。</div>`;
+            }
+        });
+    }
+
+    function renderTours() {
+        tourList.innerHTML = "";
+        
+        TOURS.forEach((tour, index) => {
+            const col = document.createElement('div');
+            col.className = 'col-lg-3 col-md-4 col-sm-6'; 
+            col.innerHTML = `
+                <div class="tour-card h-100" onclick="openTour(${index})">
+                    <div class="dm-container">
+                        <img src="${tour.img}" class="dm-img" alt="${tour.title}" onerror="this.src='https://via.placeholder.com/210x297?text=No+Image'">
+                    </div>
+                    <div class="card-body p-3 d-flex flex-column">
+                        <h6 class="text-secondary mb-1 small">${tour.id}</h6>
+                        <h6 class="card-title fw-bold mb-2 text-truncate">${tour.title}</h6>
+                        <small class="text-muted d-block text-truncate mb-3">${tour.remark}</small>
+                        <div class="mt-auto">
+                            <button class="btn btn-primary w-100 shadow-sm">查看詳情</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            tourList.appendChild(col);
+        });
+    }
+
+    let currentTour = null;
+
+    function openTour(index) {
+        currentTour = TOURS[index];
+        document.getElementById('m-title').innerText = currentTour.title;
+        document.getElementById('m-id').innerText = currentTour.id;
+        document.getElementById('m-remark').innerText = currentTour.remark;
+        document.getElementById('m-preview-img').src = currentTour.img; 
+
+        // 處理 Word 下載連結 (使用轉換函式)
+        const directDocLink = convertToDirectLink(currentTour.doc_link);
+        document.getElementById('m-doc').href = directDocLink;
+        
+        // 設定 Word 按鈕的下載屬性 (讓瀏覽器知道這是下載)
+        if(directDocLink.includes("export=download")) {
+            document.getElementById('m-doc').setAttribute("download", "");
+        } else {
+             document.getElementById('m-doc').removeAttribute("download");
+        }
+        
+        // 處理 DM 圖片下載連結
+        const directImgLink = convertToDirectLink(currentTour.img);
+        document.getElementById('m-dm-download').href = directImgLink;
+
+        document.getElementById('m-commission-box').style.display = 'none';
+        document.getElementById('m-commission').innerText = currentTour.commission;
+        resetPriceArea();
+        modal.show();
+        fetchPrices(currentTour.company_prod_no);
+    }
+
+    function unlockCommission() {
+        const pwd = prompt("請輸入內部密碼：");
+        if (pwd === "8888") { 
+            document.getElementById('m-commission-box').style.display = 'block';
+        } else if (pwd !== null) {
+            alert("密碼錯誤");
+        }
+    }
+
+    function resetPriceArea() {
+        document.getElementById('loading-spinner').style.display = 'block';
+        document.getElementById('price-table').style.display = 'none';
+        document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('price-tbody').innerHTML = '';
+    }
+
+    async function fetchPrices(prodNo) {
+        setTimeout(() => {
+            const mockData = [
+                { date: "2025/11/20", price: "29,900" },
+                { date: "2025/12/05", price: "32,900" },
+                { date: "2025/12/12", price: "35,900" },
+                { date: "2026/01/23", price: "45,900" }
+            ];
+            const tbody = document.getElementById('price-tbody');
+            tbody.innerHTML = ""; 
+            mockData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${item.date}</td><td class="text-danger fw-bold">$${item.price}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('price-table').style.display = 'table';
+        }, 600);
+    }
+</script>
+</body>
+</html>
