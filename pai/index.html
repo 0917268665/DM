@@ -165,23 +165,26 @@
     // ==========================================
     // ★ 修改版：只使用兩種尺寸 (原圖 & _m圖)
     // ==========================================
+    // ==========================================
+    // ★ 修正版：只要不是 http 開頭，全部視為本地檔案
+    // ==========================================
     function getResizedPath(originalPath, size) {
-        // ★ 修改點：加入了 !originalPath.startsWith("../") 的判斷
-        // 意思說：如果不是 ./ 開頭、也不是 / 開頭、也不是 ../ 開頭，才當作外部連結處理
-        if (!originalPath || (!originalPath.startsWith("./") && !originalPath.startsWith("/") && !originalPath.startsWith("../"))) {
+        // 1. 如果是空值，或是有 http (代表是 Google Drive 或其他外部網址)，直接回傳原圖
+        if (!originalPath || originalPath.startsWith("http")) {
             return convertToDirectLink(originalPath, true);
         }
 
+        // 2. 處理本地檔案 (支援 ../ 或 ./ 或 image/ 開頭)
         const parts = originalPath.split('.');
         if (parts.length < 2) return originalPath; 
 
-        const extension = parts.pop();
-        const basePath = parts.join('.');
+        const extension = parts.pop(); // 抓副檔名 (jpg)
+        const basePath = parts.join('.'); // 抓前面的路徑 (../image/BKI062304AK)
 
         if (size === 'original') {
-            return originalPath; 
+            return originalPath; // 下載用原圖
         } else {
-            return `${basePath}_m.${extension}`;
+            return `${basePath}_m.${extension}`; // 列表與預覽用 _m 圖
         }
     }
     const tourList = document.getElementById('tour-list');
