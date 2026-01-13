@@ -162,7 +162,28 @@
         }
         return url; 
     }
+    // ==========================================
+    // ★ 修改版：只使用兩種尺寸 (原圖 & _m圖)
+    // ==========================================
+    function getResizedPath(originalPath, size) {
+        // 如果是外部連結，直接回傳原圖
+        if (!originalPath || (!originalPath.startsWith("./") && !originalPath.startsWith("/"))) {
+            return convertToDirectLink(originalPath, true);
+        }
 
+        const parts = originalPath.split('.');
+        if (parts.length < 2) return originalPath; 
+
+        const extension = parts.pop();
+        const basePath = parts.join('.');
+
+        if (size === 'original') {
+            return originalPath; // 下載時 -> 用原圖
+        } else {
+            // 列表(thumb) 與 預覽(preview) -> 統一都用 _m 圖
+            return `${basePath}_m.${extension}`;
+        }
+    }
     const tourList = document.getElementById('tour-list');
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
@@ -188,16 +209,20 @@
         });
     }
 
-    function renderTours() {
+     function renderTours() {
         tourList.innerHTML = "";
         TOURS.forEach((tour, index) => {
-            const imgSrc = convertToDirectLink(tour.img, true);
+            // 這裡會取得 _m 圖
+            const thumbSrc = getResizedPath(tour.img, 'thumb');
+
             const col = document.createElement('div');
             col.className = 'col-lg-3 col-md-4 col-sm-6'; 
+            
+            // onerror: 如果 _m 圖不存在，自動變回原圖
             col.innerHTML = `
                 <div class="tour-card h-100" onclick="openTour(${index})">
                     <div class="dm-container">
-                        <img src="${imgSrc}" class="dm-img" alt="${tour.title}" onerror="this.src='https://via.placeholder.com/210x297?text=No+Image'">
+                        <img src="${thumbSrc}" class="dm-img" alt="${tour.title}" onerror="this.src='${tour.img}'">
                     </div>
                     <div class="card-body p-3 d-flex flex-column">
                         <h6 class="text-secondary mb-1 small">${tour.id}</h6>
@@ -221,16 +246,20 @@
         document.getElementById('m-id').innerText = currentTour.id;
         document.getElementById('m-remark').innerText = currentTour.remark;
 
-        // 圖片處理
-        const directImgLink = convertToDirectLink(currentTour.img, true);
-        document.getElementById('m-preview-img').src = directImgLink; 
+        // 預覽圖 (使用 _m)
+        const previewSrc = getResizedPath(currentTour.img, 'preview');
+        const previewImg = document.getElementById('m-preview-img');
+        previewImg.src = previewSrc;
+        // 如果找不到 _m，顯示原圖
+        previewImg.onerror = function() { this.src = currentTour.img; };
 
-        // DM 下載按鈕
+        // 下載按鈕 (強制使用原圖 original)
+        const originalSrc = getResizedPath(currentTour.img, 'original');
         const dmBtn = document.getElementById('m-dm-download');
-        dmBtn.href = directImgLink;
+        dmBtn.href = originalSrc;
         dmBtn.setAttribute("target", "_blank");
 
-        // Word 下載按鈕
+        // Word 下載 (維持不變)
         const directDocLink = convertToDirectLink(currentTour.doc_link, false);
         const docBtn = document.getElementById('m-doc');
         docBtn.href = directDocLink;
@@ -241,19 +270,16 @@
              docBtn.setAttribute("target", "_blank");
         }
 
-        // NET/佣金顯示
+        // 其他顯示設定 (NET、官網按鈕...維持不變)
         document.getElementById('m-commission-box').style.display = 'none';
         document.getElementById('m-commission').innerText = currentTour.commission;
 
-        // ★★★ 官網按鈕連結設定 ★★★
         const officialBtn = document.getElementById('m-official-link');
         if (currentTour.company_prod_no) {
-            // 組合公司官網連結
             officialBtn.href = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${currentTour.company_prod_no}`;
             officialBtn.classList.remove('disabled');
             officialBtn.innerText = "👉 前往官網查看最新出發日與售價";
         } else {
-            // 如果 Excel 沒填代號，就鎖住按鈕
             officialBtn.href = "#";
             officialBtn.classList.add('disabled');
             officialBtn.innerText = "未設定官網連結";
