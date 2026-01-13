@@ -166,8 +166,9 @@
     // ★ 修改版：只使用兩種尺寸 (原圖 & _m圖)
     // ==========================================
     function getResizedPath(originalPath, size) {
-        // 如果是外部連結，直接回傳原圖
-        if (!originalPath || (!originalPath.startsWith("./") && !originalPath.startsWith("/"))) {
+        // ★ 修改點：加入了 !originalPath.startsWith("../") 的判斷
+        // 意思說：如果不是 ./ 開頭、也不是 / 開頭、也不是 ../ 開頭，才當作外部連結處理
+        if (!originalPath || (!originalPath.startsWith("./") && !originalPath.startsWith("/") && !originalPath.startsWith("../"))) {
             return convertToDirectLink(originalPath, true);
         }
 
@@ -178,9 +179,8 @@
         const basePath = parts.join('.');
 
         if (size === 'original') {
-            return originalPath; // 下載時 -> 用原圖
+            return originalPath; 
         } else {
-            // 列表(thumb) 與 預覽(preview) -> 統一都用 _m 圖
             return `${basePath}_m.${extension}`;
         }
     }
