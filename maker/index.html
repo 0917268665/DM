@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同業 DM 貼標神器 - 奇跡旅遊</title>
+    <!-- 使用 Tailwind CSS 快速美化介面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f3f4f6;
+        }
+        canvas {
+            background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                              linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                              linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .slider-label {
+            min-width: 80px;
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+            accent-color: #2563eb;
+        }
+        /* Modal Animation */
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Grid Item Hover */
+        .dm-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+
+    <!-- Header -->
+    <div class="text-center mb-8 max-w-2xl w-full">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">同業 DM 貼標神器</h1>
+        <p class="text-gray-600">
+            簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載
+        </p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="bg-white rounded-xl shadow-lg p-6 max-w-4xl w-full grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+        
+        <!-- Controls Section (Left) -->
+        <div class="md:col-span-1 space-y-6">
+            
+            <!-- Step 1 -->
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-700">
+                    1. 選擇行程 DM (含空白區)
+                </label>
+                
+                <!-- DM Library Button -->
+                <button onclick="toggleLibrary()" class="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold py-2 px-4 rounded transition mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    從 DM 圖庫選取
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">或上傳檔案</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <input type="file" id="dmInput" accept="image/*" 
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"/>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-700">
+                    2. 上傳您的底標 (Logo/名片)
+                </label>
+                <input type="file" id="footerInput" accept="image/*" 
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition"/>
+                <p class="text-xs text-gray-400">支援 PNG 透明背景圖檔效果最佳</p>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <!-- Step 3 Controls -->
+            <div id="controlsArea" class="opacity-50 pointer-events-none transition-opacity duration-200">
+                <h3 class="font-semibold text-gray-700 mb-3">3. 調整底標位置</h3>
+                
+                <div class="slider-container">
+                    <span class="slider-label">上下位置</span>
+                    <input type="range" id="yPos" min="-500" max="500" value="0">
+                </div>
+                
+                <div class="slider-container">
+                    <span class="slider-label">左右位置</span>
+                    <input type="range" id="xPos" min="-500" max="500" value="0">
+                </div>
+
+                <div class="slider-container">
+                    <span class="slider-label">縮放大小</span>
+                    <input type="range" id="scale" min="10" max="200" value="100">
+                </div>
+
+                <div class="flex gap-2 mt-4">
+                    <button onclick="fitToWidth()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
+                        填滿寬度
+                    </button>
+                    <button onclick="resetFooter()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
+                        重置位置
+                    </button>
+                </div>
+            </div>
+
+            <!-- Download Button -->
+            <button onclick="downloadImage()" id="downloadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4" disabled>
+                下載完成圖
+            </button>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-4">
+                <p class="text-xs text-yellow-700">
+                    <span class="font-bold">提示：</span> 您也可以直接在右側預覽圖上「拖曳」底標來移動位置。
+                </p>
+            </div>
+        </div>
+
+        <!-- Preview Section (Right) -->
+        <div class="md:col-span-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden min-h-[400px]" id="canvasWrapper">
+            <p id="placeholderText" class="text-gray-400 absolute pointer-events-none text-center">
+                預覽區域<br><span class="text-sm">請先上傳圖片或從圖庫選擇</span>
+            </p>
+            <canvas id="canvas" class="max-w-full max-h-[80vh] cursor-move hidden"></canvas>
+        </div>
+    </div>
+
+    <!-- DM Library Modal -->
+    <div id="libraryModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-60" onclick="toggleLibrary()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col relative z-10 overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-800">選擇行程 DM</h3>
+                <button onclick="toggleLibrary()" class="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto bg-gray-100 min-h-[200px]" id="libraryContainer">
+                <!-- Loading State -->
+                <div id="libraryLoading" class="text-center text-gray-500 mt-8">
+                    <div class="loader"></div>
+                    <p>正在從 Google Sheet 讀取 DM 列表...</p>
+                </div>
+                
+                <div id="libraryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 hidden">
+                    <!-- Javascript will inject items here -->
+                </div>
+            </div>
+            
+            <div class="p-4 border-t bg-white text-right">
+                <button onclick="toggleLibrary()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 設定：Google Sheet CSV 連結 ---
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
+
+        // 資料變數
+        let dmLibrary = []; // 將由 CSV 填充
+        let isLibraryLoaded = false;
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const dmInput = document.getElementById('dmInput');
+        const footerInput = document.getElementById('footerInput');
+        const controlsArea = document.getElementById('controlsArea');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const placeholderText = document.getElementById('placeholderText');
+        const libraryModal = document.getElementById('libraryModal');
+        const libraryGrid = document.getElementById('libraryGrid');
+        const libraryLoading = document.getElementById('libraryLoading');
+        
+        // Sliders
+        const ySlider = document.getElementById('yPos');
+        const xSlider = document.getElementById('xPos');
+        const sSlider = document.getElementById('scale');
+
+        // State
+        let dmImg = new Image();
+        let footerImg = new Image();
+        let footerState = {
+            x: 0, y: 0, width: 0, height: 0, scale: 1,
+            originalWidth: 0, originalHeight: 0
+        };
+        let isDragging = false;
+        let lastMouseX, lastMouseY;
+
+        // --- Event Listeners ---
+
+        dmInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'dm'));
+        footerInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'footer'));
+
+        [ySlider, xSlider, sSlider].forEach(el => {
+            el.addEventListener('input', updateStateFromSliders);
+        });
+
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+        
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX, clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX, clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, {passive: false});
+
+        canvas.addEventListener('touchend', () => window.dispatchEvent(new MouseEvent('mouseup')));
+
+        // --- Library Logic (Google Sheet Integration) ---
+
+        function toggleLibrary() {
+            libraryModal.classList.toggle('active');
+            
+            // 初次開啟時才載入資料
+            if (libraryModal.classList.contains('active') && !isLibraryLoaded) {
+                loadLibraryFromSheet();
+            }
+        }
+
+        async function loadLibraryFromSheet() {
+            try {
+                const response = await fetch(SHEET_CSV_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                const csvText = await response.text();
+                
+                dmLibrary = parseCSVAndMap(csvText);
+                isLibraryLoaded = true;
+                
+                renderLibrary();
+                
+            } catch (error) {
+                console.error("Error loading sheet:", error);
+                libraryLoading.innerHTML = `<p class="text-red-500">載入失敗，請確認網路或試算表權限。</p>`;
+            }
+        }
+
+        function parseCSVAndMap(text) {
+            // 簡易 CSV 解析器 (處理逗號與換行，簡單版)
+            const rows = text.split(/\r?\n/).map(row => {
+                // 處理引號內的逗號 (簡單正則)
+                // 若欄位資料不包含逗號，可直接 split(',')
+                // 這裡使用較健壯的 CSV 正則分割
+                const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                // 若資料簡單，直接 split 即可：
+                return row.split(','); 
+            }).filter(row => row.length > 1); // 過濾空行
+
+            if (rows.length === 0) return [];
+
+            const headers = rows[0].map(h => h.trim().toLowerCase());
+            const dataRows = rows.slice(1);
+
+            // 智慧判斷欄位索引
+            let titleIdx = headers.findIndex(h => h.includes('title') || h.includes('名稱') || h.includes('標題'));
+            let urlIdx = headers.findIndex(h => h.includes('url') || h.includes('link') || h.includes('img') || h.includes('圖片') || h.includes('連結'));
+
+            // 找不到就預設：第1欄(0)是標題，第2欄(1)是圖片
+            if (titleIdx === -1) titleIdx = 0;
+            if (urlIdx === -1) urlIdx = 1;
+
+            return dataRows.map(cols => {
+                // 清除可能存在的引號
+                const clean = (str) => str ? str.replace(/^"|"$/g, '').trim() : '';
+                return {
+                    name: clean(cols[titleIdx]),
+                    url: clean(cols[urlIdx])
+                };
+            }).filter(item => item.url && item.url.length > 5); // 簡單過濾無效網址
+        }
+
+        function renderLibrary() {
+            libraryLoading.classList.add('hidden');
+            libraryGrid.classList.remove('hidden');
+
+            if (dmLibrary.length === 0) {
+                libraryGrid.innerHTML = '<p class="col-span-3 text-center text-gray-500">沒有找到 DM 資料</p>';
+                return;
+            }
+
+            libraryGrid.innerHTML = dmLibrary.map(dm => `
+                <div class="dm-item cursor-pointer bg-white rounded-lg shadow overflow-hidden border border-gray-200 transition-transform duration-200 group"
+                     onclick="selectDmFromLibrary('${dm.url}')">
+                    <div class="h-48 overflow-hidden bg-gray-200 flex items-center justify-center relative">
+                        <img src="${dm.url}" alt="${dm.name}" class="w-full h-full object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all"></div>
+                    </div>
+                    <div class="p-3">
+                        <p class="font-bold text-gray-700 text-sm text-center truncate" title="${dm.name}">${dm.name}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectDmFromLibrary(url) {
+            toggleLibrary();
+            loadFromUrl(url);
+        }
+
+        function loadFromUrl(url) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; 
+            
+            placeholderText.innerHTML = "圖片載入中...";
+            placeholderText.classList.remove('hidden');
+            canvas.classList.add('hidden');
+
+            img.onload = () => {
+                dmImg = img;
+                initCanvas();
+                draw();
+                checkReady();
+                dmInput.value = '';
+            };
+            
+            img.onerror = () => {
+                alert("無法載入圖片。可能原因：\n1. 連結無效\n2. 圖片不支援跨域存取 (CORS)\n3. 這是 Google Drive 圖片 (需轉換格式)");
+                placeholderText.innerHTML = "圖片載入失敗，請重試";
+            };
+            
+            // 加入時間戳記避免快取
+            img.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+        }
+
+        // --- Core Functions ---
+
+        function loadFile(file, type) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (type === 'dm') {
+                        dmImg = img;
+                        initCanvas();
+                    } else {
+                        footerImg = img;
+                        initFooter();
+                    }
+                    draw();
+                    checkReady();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initCanvas() {
+            canvas.width = dmImg.width;
+            canvas.height = dmImg.height;
+            canvas.classList.remove('hidden');
+            placeholderText.classList.add('hidden');
+            if (footerImg.src) resetFooter();
+        }
+
+        function initFooter() {
+            footerState.originalWidth = footerImg.width;
+            footerState.originalHeight = footerImg.height;
+            resetFooter();
+            controlsArea.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        function resetFooter() {
+            if (!dmImg.src || !footerImg.src) return;
+            const scale = canvas.width / footerImg.width;
+            footerState.width = canvas.width;
+            footerState.height = footerImg.height * scale;
+            footerState.x = 0;
+            footerState.y = canvas.height - footerState.height;
+            footerState.scale = 100;
+            ySlider.value = 0;
+            xSlider.value = 0;
+            sSlider.value = 100;
+            draw();
+        }
+        
+        function fitToWidth() { resetFooter(); }
+
+        function updateStateFromSliders() {
+            if (!dmImg.src || !footerImg.src) return;
+            const baseScale = canvas.width / footerState.originalWidth;
+            const currentScale = sSlider.value / 100;
+            footerState.width = footerState.originalWidth * baseScale * currentScale;
+            footerState.height = footerState.originalHeight * baseScale * currentScale;
+            
+            const baseX = (canvas.width - footerState.width) / 2;
+            const baseY = canvas.height - footerState.height;
+            const moveFactor = canvas.height / 500; 
+            
+            footerState.x = baseX + (parseInt(xSlider.value) * moveFactor);
+            footerState.y = baseY + (parseInt(ySlider.value) * moveFactor * -1);
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (dmImg.src) ctx.drawImage(dmImg, 0, 0);
+            if (footerImg.src) {
+                ctx.drawImage(footerImg, footerState.x, footerState.y, footerState.width, footerState.height);
+                ctx.strokeStyle = "rgba(37, 99, 235, 0.8)";
+                ctx.lineWidth = 4;
+                ctx.setLineDash([10, 5]);
+                ctx.strokeRect(footerState.x, footerState.y, footerState.width, footerState.height);
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function downloadImage() {
+            if (dmImg.src) ctx.drawImage(dmImg, 0, 0);
+            if (footerImg.src) ctx.drawImage(footerImg, footerState.x, footerState.y, footerState.width, footerState.height);
+            
+            const link = document.createElement('a');
+            link.download = '奇跡旅遊DM_已加底標.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+            draw();
+        }
+
+        function checkReady() {
+            if (dmImg.src && footerImg.src) downloadBtn.disabled = false;
+        }
+
+        // --- Drag Logic ---
+        function startDrag(e) {
+            if (!footerImg.src) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+
+            if (mouseX >= footerState.x && mouseX <= footerState.x + footerState.width &&
+                mouseY >= footerState.y && mouseY <= footerState.y + footerState.height) {
+                isDragging = true;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+            
+            footerState.x += (mouseX - lastMouseX);
+            footerState.y += (mouseY - lastMouseY);
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            draw();
+        }
+
+        function endDrag() { isDragging = false; }
+
+    </script>
+</body>
+</html>
