@@ -89,15 +89,22 @@
                     1. 選擇行程 DM (含空白區)
                 </label>
                 
-                <!-- DM Library Button Only -->
+                <!-- DM Library Button -->
                 <button onclick="toggleLibrary()" class="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold py-2 px-4 rounded transition mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     從 DM 圖庫選取
                 </button>
-                
-                <!-- Removed Upload Input for DM -->
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">或上傳檔案</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <input type="file" id="dmInput" accept="image/*" 
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"/>
             </div>
 
             <!-- Step 2 -->
@@ -156,7 +163,7 @@
         <!-- Preview Section (Right) -->
         <div class="md:col-span-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden min-h-[400px]" id="canvasWrapper">
             <p id="placeholderText" class="text-gray-400 absolute pointer-events-none text-center">
-                預覽區域<br><span class="text-sm">請先從圖庫選擇圖片</span>
+                預覽區域<br><span class="text-sm">請先上傳圖片或從圖庫選擇</span>
             </p>
             <canvas id="canvas" class="max-w-full max-h-[80vh] cursor-move hidden"></canvas>
         </div>
@@ -203,7 +210,7 @@
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        // REMOVED: const dmInput = document.getElementById('dmInput');
+        const dmInput = document.getElementById('dmInput');
         const footerInput = document.getElementById('footerInput');
         const controlsArea = document.getElementById('controlsArea');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -229,7 +236,7 @@
 
         // --- Event Listeners ---
 
-        // REMOVED: dmInput.addEventListener('change', ...);
+        dmInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'dm'));
         footerInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'footer'));
 
         [ySlider, xSlider, sSlider].forEach(el => {
@@ -362,7 +369,7 @@
                 initCanvas();
                 draw();
                 checkReady();
-                // REMOVED: dmInput.value = '';
+                dmInput.value = '';
             };
             
             img.onerror = () => {
