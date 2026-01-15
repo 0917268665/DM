@@ -220,6 +220,7 @@
         // State
         let dmImg = new Image();
         let footerImg = new Image();
+        let currentDmName = "行程DM"; // 新增：預設檔名
         let footerState = {
             x: 0, y: 0, width: 0, height: 0, scale: 1,
             originalWidth: 0, originalHeight: 0
@@ -334,10 +335,13 @@
                 // 自動將原圖網址轉換為 _m 縮圖 (例如 photo.jpg -> photo_m.jpg)
                 // 使用 regex: 找到最後一個點(.)及其後的副檔名，並在點之前插入 _m
                 const thumbnailUrl = dm.url.replace(/(\.[^./?]+)(\?.*)?$/, '_m$1$2');
+                
+                // 處理名稱中的特殊字元，避免破壞 HTML 屬性
+                const safeName = dm.name.replace(/'/g, "\\'");
 
                 return `
                 <div class="dm-item cursor-pointer bg-white rounded-lg shadow overflow-hidden border border-gray-200 transition-transform duration-200 group"
-                     onclick="selectDmFromLibrary('${dm.url}')">
+                     onclick="selectDmFromLibrary('${dm.url}', '${safeName}')">
                     <div class="h-48 overflow-hidden bg-gray-200 flex items-center justify-center relative">
                         <img src="${thumbnailUrl}" 
                              onerror="this.onerror=null;this.src='${dm.url}';"
@@ -354,7 +358,9 @@
             }).join('');
         }
 
-        function selectDmFromLibrary(url) {
+        // 修改：接收 name 參數
+        function selectDmFromLibrary(url, name) {
+            currentDmName = name || "行程DM"; // 更新當前 DM 名稱
             toggleLibrary();
             loadFromUrl(url);
         }
@@ -472,7 +478,8 @@
             if (footerImg.src) ctx.drawImage(footerImg, footerState.x, footerState.y, footerState.width, footerState.height);
             
             const link = document.createElement('a');
-            link.download = '奇跡旅遊DM_已加底標.jpg';
+            // 修改：使用動態檔名
+            link.download = currentDmName + '已加底標.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
             draw();
