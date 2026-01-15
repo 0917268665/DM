@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>同業 DM 貼標神器 - 奇跡旅遊</title>
+    <title>世興 DM 貼標神器</title>
     <!-- 使用 Tailwind CSS 快速美化介面 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -71,7 +71,7 @@
 
     <!-- Header -->
     <div class="text-center mb-8 max-w-2xl w-full">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">同業 DM 貼標神器</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">世興 DM 貼標神器</h1>
         <p class="text-gray-600">
             簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載
         </p>
@@ -86,7 +86,7 @@
             <!-- Step 1 -->
             <div class="space-y-2">
                 <label class="block text-sm font-semibold text-gray-700">
-                    1. 選擇行程 DM (含空白區)
+                    1. 選擇行程 DM
                 </label>
                 
                 <!-- DM Library Button Only -->
@@ -103,11 +103,10 @@
             <!-- Step 2 -->
             <div class="space-y-2">
                 <label class="block text-sm font-semibold text-gray-700">
-                    2. 上傳您的底標 (Logo/名片)
+                    2. 上傳您的底標
                 </label>
                 <input type="file" id="footerInput" accept="image/*" 
                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition"/>
-                <p class="text-xs text-gray-400">支援 PNG 透明背景圖檔效果最佳</p>
             </div>
 
             <hr class="border-gray-200">
@@ -203,7 +202,6 @@
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        // REMOVED: const dmInput = document.getElementById('dmInput');
         const footerInput = document.getElementById('footerInput');
         const controlsArea = document.getElementById('controlsArea');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -220,7 +218,7 @@
         // State
         let dmImg = new Image();
         let footerImg = new Image();
-        let currentDmName = "行程DM"; // 新增：預設檔名
+        let currentDmName = "行程DM"; // 預設檔名變數
         let footerState = {
             x: 0, y: 0, width: 0, height: 0, scale: 1,
             originalWidth: 0, originalHeight: 0
@@ -230,7 +228,6 @@
 
         // --- Event Listeners ---
 
-        // REMOVED: dmInput.addEventListener('change', ...);
         footerInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'footer'));
 
         [ySlider, xSlider, sSlider].forEach(el => {
@@ -289,37 +286,29 @@
         }
 
         function parseCSVAndMap(text) {
-            // 簡易 CSV 解析器 (處理逗號與換行，簡單版)
             const rows = text.split(/\r?\n/).map(row => {
-                // 處理引號內的逗號 (簡單正則)
-                // 若欄位資料不包含逗號，可直接 split(',')
-                // 這裡使用較健壯的 CSV 正則分割
                 const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-                // 若資料簡單，直接 split 即可：
                 return row.split(','); 
-            }).filter(row => row.length > 1); // 過濾空行
+            }).filter(row => row.length > 1);
 
             if (rows.length === 0) return [];
 
             const headers = rows[0].map(h => h.trim().toLowerCase());
             const dataRows = rows.slice(1);
 
-            // 智慧判斷欄位索引
             let titleIdx = headers.findIndex(h => h.includes('title') || h.includes('名稱') || h.includes('標題'));
             let urlIdx = headers.findIndex(h => h.includes('url') || h.includes('link') || h.includes('img') || h.includes('圖片') || h.includes('連結'));
 
-            // 找不到就預設：第1欄(0)是標題，第2欄(1)是圖片
             if (titleIdx === -1) titleIdx = 0;
             if (urlIdx === -1) urlIdx = 1;
 
             return dataRows.map(cols => {
-                // 清除可能存在的引號
                 const clean = (str) => str ? str.replace(/^"|"$/g, '').trim() : '';
                 return {
                     name: clean(cols[titleIdx]),
                     url: clean(cols[urlIdx])
                 };
-            }).filter(item => item.url && item.url.length > 5); // 簡單過濾無效網址
+            }).filter(item => item.url && item.url.length > 5);
         }
 
         function renderLibrary() {
@@ -332,13 +321,12 @@
             }
 
             libraryGrid.innerHTML = dmLibrary.map(dm => {
-                // 自動將原圖網址轉換為 _m 縮圖 (例如 photo.jpg -> photo_m.jpg)
-                // 使用 regex: 找到最後一個點(.)及其後的副檔名，並在點之前插入 _m
                 const thumbnailUrl = dm.url.replace(/(\.[^./?]+)(\?.*)?$/, '_m$1$2');
                 
-                // 處理名稱中的特殊字元，避免破壞 HTML 屬性
+                // 處理名稱中的特殊字元，避免破壞 HTML
                 const safeName = dm.name.replace(/'/g, "\\'");
 
+                // 在 onclick 事件中同時傳入 URL 和 Name
                 return `
                 <div class="dm-item cursor-pointer bg-white rounded-lg shadow overflow-hidden border border-gray-200 transition-transform duration-200 group"
                      onclick="selectDmFromLibrary('${dm.url}', '${safeName}')">
@@ -358,9 +346,13 @@
             }).join('');
         }
 
-        // 修改：接收 name 參數
+        // 修改：接收 name 參數並存入 currentDmName
         function selectDmFromLibrary(url, name) {
-            currentDmName = name || "行程DM"; // 更新當前 DM 名稱
+            if(name) {
+                currentDmName = name;
+            } else {
+                currentDmName = "行程DM";
+            }
             toggleLibrary();
             loadFromUrl(url);
         }
@@ -378,7 +370,6 @@
                 initCanvas();
                 draw();
                 checkReady();
-                // REMOVED: dmInput.value = '';
             };
             
             img.onerror = () => {
@@ -386,7 +377,6 @@
                 placeholderText.innerHTML = "圖片載入失敗，請重試";
             };
             
-            // 加入時間戳記避免快取
             img.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
         }
 
@@ -478,7 +468,7 @@
             if (footerImg.src) ctx.drawImage(footerImg, footerState.x, footerState.y, footerState.width, footerState.height);
             
             const link = document.createElement('a');
-            // 修改：使用動態檔名
+            // 修改：使用 DM 名稱作為檔名
             link.download = currentDmName + '已加底標.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
