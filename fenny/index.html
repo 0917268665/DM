@@ -14,17 +14,44 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* ... 這裡保留原本的 CSS ... */
         body { background-color: #f0f2f5; font-family: "Microsoft JhengHei", sans-serif; }
         .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 15px; }
         .header-logo-container { width: 100%; text-align: center; margin-bottom: 10px; padding: 0 15px; }
         .header-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; }
         .header-title { font-size: 1.5rem; font-weight: bold; color: white; }
         .header-info { color: white; font-size: 0.9rem; line-height: 1.3; text-align: right; }
+        
         .tour-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; background: white; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
         .tour-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
         .dm-container { width: 100%; aspect-ratio: 210 / 297; background-color: #f8f9fa; position: relative; border-bottom: 1px solid #eee; }
         .dm-img { width: 100%; height: 100%; object-fit: contain; }
+        
+        /* 分類按鈕滑動區塊樣式 */
+        .category-scroll-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 5px;
+            -webkit-overflow-scrolling: touch; /* 讓手機滑動更順暢 */
+            scrollbar-width: none; /* Firefox 隱藏捲軸 */
+        }
+        .category-scroll-container::-webkit-scrollbar { display: none; /* Chrome 隱藏捲軸 */ }
+        
+        .cat-btn {
+            display: inline-block;
+            margin-right: 8px;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.95rem;
+            border: 1px solid #f37021;
+            background-color: white;
+            color: #f37021;
+            transition: all 0.3s;
+        }
+        .cat-btn.active, .cat-btn:hover {
+            background-color: #f37021;
+            color: white;
+        }
+
         .modal-header { background: #2c3e50; color: white; }
         .commission-box { display: none; background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; }
         .warning-modal-header { background-color: #dc3545; color: white; }
@@ -32,27 +59,55 @@
 </head>
 <body>
 
-<header class="custom-header shadow-sm mb-4">
+<header class="custom-header shadow-sm mb-3">
     <div class="header-logo-container">
         <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo">
     </div>
     
-    <div class="container d-flex justify-content-between align-items-end">
-        <div class="header-title">
-            ✈️ 直售DM行程下載
-        </div>
-        
-        <div class="header-info d-flex align-items-center">
-            <div class="me-2">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div class="header-title">
+                ✈️ 直售DM行程下載
+            </div>
+            
+            <div class="header-info d-flex align-items-center">
+                <div class="me-2">
                 <div>業務：王麗芬</div>
                 <div>手機：0937019875</div>
+                </div>
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
+                </a>
             </div>
-            <a href="https://line.me/ti/p/kxz3K9hWWp" target="_blank">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="https://0917268665.github.io/DM/maker/" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
+                ✨ 點我前往貼標神器 ✨
             </a>
         </div>
     </div>
 </header>
+
+<div class="container sticky-top bg-white shadow-sm py-2 mb-4" style="z-index: 100; border-radius: 0 0 15px 15px;">
+    <div class="category-scroll-container" id="category-container">
+        <button class="btn cat-btn active" onclick="filterCategory('all', this)">全部</button>
+        <button class="btn cat-btn" onclick="filterCategory('日本', this)">日本</button>
+        <button class="btn cat-btn" onclick="filterCategory('韓國', this)">韓國</button>
+        <button class="btn cat-btn" onclick="filterCategory('中國大陸', this)">中國大陸</button>
+        <button class="btn cat-btn" onclick="filterCategory('泰國', this)">泰國</button>
+        <button class="btn cat-btn" onclick="filterCategory('越南', this)">越南</button>
+        <button class="btn cat-btn" onclick="filterCategory('馬來西亞', this)">馬來西亞</button>
+        <button class="btn cat-btn" onclick="filterCategory('菲律賓', this)">菲律賓</button>
+        <button class="btn cat-btn" onclick="filterCategory('印尼', this)">印尼</button>
+        <button class="btn cat-btn" onclick="filterCategory('新加坡', this)">新加坡</button>
+        <button class="btn cat-btn" onclick="filterCategory('汶萊', this)">汶萊</button>
+        <button class="btn cat-btn" onclick="filterCategory('港澳', this)">港澳</button>
+        <button class="btn cat-btn" onclick="filterCategory('歐洲', this)">歐洲</button>
+        <button class="btn cat-btn" onclick="filterCategory('紐澳', this)">紐澳</button>
+        <button class="btn cat-btn" onclick="filterCategory('中東.中亞.非洲', this)">中東.中亞.非洲</button>
+    </div>
+</div>
 
 <div class="container mb-5">
     <div class="row g-4" id="tour-list">
@@ -92,7 +147,7 @@
                     </div>
                     <div class="col-md-8 text-md-end mt-2 mt-md-0 d-flex justify-content-md-end gap-2">
                         <a id="m-dm-download" href="#" target="_blank" class="btn btn-outline-success">
-                            📥 下載 高畫質DM
+                            📥 下載 DM 圖檔
                         </a>
                         <a id="m-doc" href="#" class="btn btn-outline-primary">
                             📥 下載 Word 行程
@@ -131,7 +186,8 @@
                     </a>
                     <small class="text-muted text-center">點擊將開啟公司官網行程頁面，查看詳細出發日與售價</small>
                 </div>
-                <div class="mb-4"></div> </div>
+                <div class="mb-4"></div>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
             </div>
@@ -143,8 +199,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // 設定區
     const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
 
+    // 輔助函式：連結處理
     function convertToDirectLink(url, isImage = false) {
         if (!url) return "#";
         if (url.startsWith("http") && url.includes("drive.google.com")) {
@@ -158,15 +216,10 @@
         return url; 
     }
 
-    // ★ 強制轉換函式：只要檔名結尾是 .jpg，就強制插入 _m
+    // 強制轉換函式 (_m 縮圖)
     function getResizedPath(originalPath, size) {
         if (!originalPath || originalPath.startsWith("http")) return convertToDirectLink(originalPath, true);
-        
-        // 只要是下載模式 (original)，直接回傳原路徑
         if (size === 'original') return originalPath;
-
-        // 其他模式 (thumb/preview)，強制加 _m
-        // 這裡做一個簡單的防呆：確認有 .jpg 再換，避免錯誤
         if (originalPath.toLowerCase().endsWith(".jpg")) {
             return originalPath.replace(/.jpg$/i, "_m.jpg");
         }
@@ -179,7 +232,10 @@
     const tourList = document.getElementById('tour-list');
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
-    let TOURS = [];
+    
+    // 定義全域變數
+    let ALL_TOURS = []; // 存放所有資料
+    let DISPLAY_TOURS = []; // 存放目前要顯示的資料 (篩選後)
 
     document.addEventListener("DOMContentLoaded", function() {
         warningModal.show();
@@ -191,28 +247,65 @@
             download: true,
             header: true,
             complete: function(results) {
-                TOURS = results.data.filter(item => item.id && item.title);
+                // 讀取資料並過濾無效列
+                ALL_TOURS = results.data.filter(item => item.id && item.title);
+                // 一開始預設顯示全部
+                DISPLAY_TOURS = ALL_TOURS;
                 renderTours();
             },
             error: function(err) { console.error("Error:", err); }
         });
     }
 
+    // ★ 新增功能：分類篩選邏輯
+    function filterCategory(category, btnElement) {
+        // 1. 處理按鈕樣式 (Active)
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        // 2. 篩選資料
+        if (category === 'all') {
+            DISPLAY_TOURS = ALL_TOURS;
+        } else {
+            // 檢查 Excel 中的 category 欄位是否包含該分類文字
+            // 使用 includes 是為了防呆，例如 Excel 填 "日本旅遊" 也能被 "日本" 篩選到
+            DISPLAY_TOURS = ALL_TOURS.filter(tour => {
+                return tour.category && tour.category.includes(category);
+            });
+        }
+
+        // 3. 重新渲染列表
+        renderTours();
+    }
+
     function renderTours() {
         tourList.innerHTML = "";
-        TOURS.forEach((tour, index) => {
+
+        if (DISPLAY_TOURS.length === 0) {
+            tourList.innerHTML = `<div class="col-12 text-center text-muted py-5">此分類暫無行程</div>`;
+            return;
+        }
+
+        DISPLAY_TOURS.forEach((tour) => {
+            // 注意：因為過濾過，所以 index 不能直接用，要傳遞整包 tour 物件或重新尋找 index
+            // 這裡我們改用直接傳遞 tour 物件的方式，會比較安全，但為了不大幅改動 openTour 結構
+            // 我們使用一個小技巧：找出該 tour 在原始 ALL_TOURS 的索引
+            const originalIndex = ALL_TOURS.indexOf(tour);
+
             const thumbSrc = getResizedPath(tour.img, 'thumb');
             const col = document.createElement('div');
             col.className = 'col-lg-3 col-md-4 col-sm-6'; 
             
-            // ★ 除錯版：暫時移除 onerror，若成功顯示 _m 圖，代表路徑正確
             col.innerHTML = `
-                <div class="tour-card h-100" onclick="openTour(${index})">
+                <div class="tour-card h-100" onclick="openTour(${originalIndex})">
                     <div class="dm-container">
                         <img src="${thumbSrc}" class="dm-img" alt="${tour.title}">
                     </div>
                     <div class="card-body p-3 d-flex flex-column">
-                        <h6 class="text-secondary mb-1 small">${tour.id}</h6>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="text-secondary mb-1 small">${tour.id}</h6>
+                            <small class="text-white bg-secondary px-2 rounded-pill" style="font-size: 0.7rem; height:fit-content;">${tour.category || '精選'}</small>
+                        </div>
                         <h6 class="card-title fw-bold mb-2 text-truncate">${tour.title}</h6>
                         <small class="text-muted d-block text-truncate mb-3">${tour.remark}</small>
                         <div class="mt-auto">
@@ -228,12 +321,14 @@
     let currentTour = null;
 
     function openTour(index) {
-        currentTour = TOURS[index];
+        // 使用原始資料陣列來獲取正確的行程
+        currentTour = ALL_TOURS[index];
+        
         document.getElementById('m-title').innerText = currentTour.title;
         document.getElementById('m-id').innerText = currentTour.id;
         document.getElementById('m-remark').innerText = currentTour.remark;
 
-        // 預覽圖 (_m)
+        // 預覽圖
         const previewSrc = getResizedPath(currentTour.img, 'preview');
         document.getElementById('m-preview-img').src = previewSrc; 
         
