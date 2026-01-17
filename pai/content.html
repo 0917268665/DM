@@ -110,6 +110,27 @@
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover { background-color: #f8f9fa; color: #f37021; }
 
+        /* 首頁風格按鈕 (無抖動版) */
+        .home-style-btn {
+            display: block;
+            width: 100%;
+            background-color: #fff;
+            color: #dc3545; /* 配合首頁文字顏色 */
+            font-weight: bold;
+            padding: 12px 0;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid transparent; /* 預留邊框防止抖動 */
+            transition: background-color 0.2s, color 0.2s; /* 僅改變顏色，不改變位置 */
+        }
+        .home-style-btn:hover {
+            background-color: #f8f9fa; /* 輕微變灰 */
+            color: #bd2130;
+            border-color: #eee;
+        }
+
     </style>
 </head>
 <body>
@@ -268,6 +289,10 @@
                         // 嘗試抓取 'dm_img', 'dm', 'DM', 'DM圖檔'
                         const dm_img = getField(item, ['dm_img', 'dm', 'DM', 'DM圖檔']);
 
+                        // ★ 修正：智慧偵測素材欄位
+                        // 嘗試抓取 'assets', 'Assets', '素材', '素材圖片', '素材連結'
+                        const assetsStr = getField(item, ['assets', 'Assets', '素材', '素材圖片', '素材連結']);
+
                         // 如果沒有標題，就視為無效資料，之後會被 filter 掉
                         if (!title) return null;
 
@@ -299,7 +324,8 @@
                             content: content,
                             category: category,
                             dm_img: dm_img,
-                            assetsArray: item.assets ? item.assets.split(',').map(url => url.trim()).filter(url => url !== "") : [],
+                            // ★ 修正：使用智慧偵測到的 assetsStr
+                            assetsArray: assetsStr ? assetsStr.split(',').map(url => url.trim()).filter(url => url !== "") : [],
                             docFiles: docFiles
                         };
                     })
@@ -386,7 +412,7 @@
                 let dropdownHtml = `
                     <div class="btn-group">
                         <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-folder-symlink"></i> 下載 Word 行程 (共${item.docFiles.length}個)
+                            <i class="bi bi-folder-symlink"></i> 下載 Word (共${item.docFiles.length}種)
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                 `;
@@ -415,7 +441,7 @@
 
         actionArea.innerHTML += `
             <a href="${dmLink}" ${dmTarget} class="btn btn-outline-danger btn-sm ${dmDisabled}">
-                <i class="bi bi-image"></i> 下載DM圖檔
+                <i class="bi bi-image"></i> 下載DM
             </a>
         `;
 
