@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>世興DM文案小幫手</title>
+    
+    <meta property="og:title" content="世興DM文案小幫手">
+    <meta property="og:description" content="提供行程廣告文案與素材下載。">
+    <meta property="og:type" content="website">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        /* 沿用原有配色與風格 */
+        body { background-color: #f0f2f5; font-family: "Microsoft JhengHei", sans-serif; }
+        .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 15px; }
+        .header-logo-container { width: 100%; text-align: center; margin-bottom: 10px; padding: 0 15px; }
+        .header-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; }
+        .header-title { font-size: 1.5rem; font-weight: bold; color: white; }
+        .header-info { color: white; font-size: 0.9rem; line-height: 1.3; text-align: right; }
+        
+        /* 列表卡片樣式調整：左圖右文 */
+        .copy-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            height: 100%;
+        }
+        .copy-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-img-wrapper {
+            width: 100%;
+            height: 250px; /* 手機版高度 */
+            background-color: #eee;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 電腦版左側圖片高度設定 */
+        @media (min-width: 768px) {
+            .card-img-wrapper {
+                height: 100%;
+                min-height: 280px; 
+            }
+        }
+
+        .dm-img-main {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .copy-preview-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 6; /* 增加預覽行數 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: #555;
+            font-size: 1rem;
+            white-space: pre-wrap; 
+            line-height: 1.6;
+        }
+
+        /* 彈窗樣式 */
+        .modal-header { background: #2c3e50; color: white; }
+        .modal-title { font-weight: bold; }
+        
+        .copy-content-box {
+            background-color: #f8f9fa;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* 素材圖片格線 (每排兩張) */
+        .asset-img-container {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .asset-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .asset-img:hover {
+            transform: scale(1.05);
+        }
+
+        /* 下拉選單樣式優化 */
+        .dropdown-item { padding: 10px 20px; border-bottom: 1px solid #eee; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: #f8f9fa; color: #f37021; }
+
+    </style>
+</head>
+<body>
+
+<header class="custom-header shadow-sm mb-4">
+    <div class="header-logo-container">
+        <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo" onerror="this.style.display='none';">
+    </div>
+    
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div class="header-title">
+                📝 世興DM文案小幫手
+            </div>
+            
+            <div class="header-info d-flex align-items-center">
+                <div class="me-2">
+                    <div>業務：陳彥百(百百)</div>
+                    <div>手機：0917268665</div>
+                </div>
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="https://0917268665.github.io/DM/pai" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
+                點我回到行程下載
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- 內容區 -->
+<div class="container mb-5">
+    <div class="row g-4" id="copy-list">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-secondary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">正在讀取文案資料...</p>
+        </div>
+    </div>
+</div>
+
+<!-- 詳情彈窗 (Modal) -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="m-title">標題</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- 按鈕區：DM下載、Word下載(多檔案邏輯)、貼標神器 -->
+                <div class="d-flex flex-wrap gap-2 mb-1 justify-content-end" id="m-action-area">
+                    <!-- JS 動態生成按鈕 -->
+                </div>
+                
+                <!-- 新增：提示文字 -->
+                <div class="text-end mb-3">
+                    <small class="text-muted" style="font-size: 0.8rem;">(如需合成您的logo底標，請前往貼標神器)</small>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-text-left"></i> 廣告文案</h6>
+                    <button class="btn btn-sm btn-dark" onclick="copyText()">
+                        <i class="bi bi-clipboard"></i> 一鍵複製文案
+                    </button>
+                </div>
+                <div class="copy-content-box mb-4" id="m-full-text"></div>
+
+                <hr>
+
+                <h6 class="fw-bold mb-3"><i class="bi bi-images"></i> 行程素材圖片</h6>
+                <div class="row g-3" id="m-assets-container"></div>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+  <div id="copyToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-check-circle-fill me-2"></i> 文案已複製到剪貼簿！
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ================= 設定區 =================
+    const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
+    // =========================================
+
+    let ALL_DATA = [];
+
+    const listContainer = document.getElementById('copy-list');
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    const toast = new bootstrap.Toast(document.getElementById('copyToast'));
+
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchData();
+    });
+
+    function fetchData() {
+        Papa.parse(googleSheetUrl, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                // 資料處理邏輯
+                ALL_DATA = results.data
+                    .filter(item => item.id && item.title) // 過濾空行
+                    .map(item => {
+                        // --- 處理多檔案下載邏輯 ---
+                        let docFiles = [];
+                        
+                        // 1. 檢查新版欄位 doc_link_1 ~ 10
+                        for(let i=1; i<=10; i++){
+                            const link = item[`doc_link_${i}`];
+                            const name = item[`doc_name_${i}`];
+                            if(link && link.trim() !== "") {
+                                docFiles.push({
+                                    name: name || `行程 ${i}`,
+                                    url: link.trim()
+                                });
+                            }
+                        }
+
+                        // 2. 如果都沒有新版欄位，檢查舊版 doc_link 作為相容
+                        if(docFiles.length === 0 && item.doc_link && item.doc_link.trim() !== "") {
+                            docFiles.push({
+                                name: "下載行程 Word",
+                                url: item.doc_link.trim()
+                            });
+                        }
+
+                        return {
+                            ...item,
+                            // 素材圖片字串轉陣列
+                            assetsArray: item.assets ? item.assets.split(',').map(url => url.trim()).filter(url => url !== "") : [],
+                            // 整理後的檔案列表
+                            docFiles: docFiles
+                        };
+                    });
+                
+                renderList();
+            },
+            error: function(err) {
+                console.error("Error:", err);
+                listContainer.innerHTML = `<div class="col-12 text-center text-danger">讀取資料失敗，請檢查網路或連結。</div>`;
+            }
+        });
+    }
+
+    // 渲染列表
+    function renderList() {
+        listContainer.innerHTML = "";
+
+        if (ALL_DATA.length === 0) {
+            listContainer.innerHTML = `<div class="col-12 text-center text-muted py-5">暫無資料</div>`;
+            return;
+        }
+
+        ALL_DATA.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'col-12'; 
+            
+            div.innerHTML = `
+                <div class="copy-card" onclick="openDetail(${index})">
+                    <div class="row g-0 h-100">
+                        <!-- 圖片區塊 -->
+                        <div class="col-md-4 col-xl-3">
+                            <div class="card-img-wrapper">
+                                <img src="${item.dm_img || 'https://via.placeholder.com/400x300?text=No+Image'}" class="dm-img-main" alt="${item.title}">
+                            </div>
+                        </div>
+                        <!-- 文字區塊 -->
+                        <div class="col-md-8 col-xl-9">
+                            <div class="card-body h-100 d-flex flex-column p-4">
+                                <div class="mb-2">
+                                    <span class="badge bg-primary">${item.category || '精選'}</span>
+                                    <small class="text-muted ms-1">${item.id}</small>
+                                </div>
+                                <h4 class="card-title fw-bold mb-3">${item.title}</h4>
+                                <div class="copy-preview-text flex-grow-1 mb-3">
+                                    ${item.content || '(無文案內容)'}
+                                </div>
+                                <div class="mt-auto text-end">
+                                    <button class="btn btn-outline-secondary stretched-link">
+                                        查看完整內容 & 下載
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    function openDetail(index) {
+        const item = ALL_DATA[index];
+        
+        document.getElementById('m-title').innerText = item.title;
+        document.getElementById('m-full-text').innerText = item.content || '';
+        
+        // --- 動態生成按鈕區 ---
+        const actionArea = document.getElementById('m-action-area');
+        actionArea.innerHTML = '';
+
+        // 1. DM 下載按鈕 (固定顯示，若無連結則 disable)
+        const dmLink = (item.dm_img && item.dm_img.trim() !== "") ? item.dm_img : "#";
+        const dmDisabled = (dmLink === "#") ? "disabled" : "";
+        const dmTarget = (dmLink === "#") ? "" : `target="_blank"`;
+
+        actionArea.innerHTML += `
+            <a href="${dmLink}" ${dmTarget} class="btn btn-outline-danger btn-sm ${dmDisabled}">
+                <i class="bi bi-image"></i> 下載DM圖檔
+            </a>
+        `;
+
+        // 2. Word 行程下載
+        if (item.docFiles && item.docFiles.length > 0) {
+            if (item.docFiles.length === 1) {
+                // 只有一個檔案：直接顯示按鈕
+                const file = item.docFiles[0];
+                actionArea.innerHTML += `
+                    <a href="${file.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-word"></i> ${file.name}
+                    </a>
+                `;
+            } else {
+                // 有多個檔案：顯示下拉選單
+                let dropdownHtml = `
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-folder-symlink"></i> 下載 Word 行程 (共${item.docFiles.length}個)
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                `;
+                
+                item.docFiles.forEach(file => {
+                    dropdownHtml += `
+                        <li><a class="dropdown-item" href="${file.url}" target="_blank">
+                            <i class="bi bi-file-earmark-word me-2"></i>${file.name}
+                        </a></li>
+                    `;
+                });
+
+                dropdownHtml += `</ul></div>`;
+                actionArea.innerHTML += dropdownHtml;
+            }
+        } else {
+             // 若無行程檔，顯示 disable 狀態的按鈕佔位 (選用)
+             actionArea.innerHTML += `
+                <a href="#" class="btn btn-outline-primary btn-sm disabled">
+                    <i class="bi bi-file-word"></i> 無行程檔
+                </a>
+            `;
+        }
+
+        // 3. 貼標神器連結 (固定)
+        actionArea.innerHTML += `
+            <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-magic"></i> 前往貼標神器
+            </a>
+        `;
+
+        // --- 處理素材圖片 ---
+        const assetContainer = document.getElementById('m-assets-container');
+        assetContainer.innerHTML = "";
+        
+        if (item.assetsArray && item.assetsArray.length > 0) {
+            item.assetsArray.forEach(imgUrl => {
+                const col = document.createElement('div');
+                col.className = 'col-6'; 
+                col.innerHTML = `
+                    <div class="asset-img-container">
+                        <a href="${imgUrl}" target="_blank">
+                            <img src="${imgUrl}" class="asset-img" loading="lazy">
+                        </a>
+                    </div>
+                `;
+                assetContainer.appendChild(col);
+            });
+        } else {
+            assetContainer.innerHTML = '<div class="col-12 text-center text-muted">無素材圖片</div>';
+        }
+
+        modal.show();
+    }
+
+    function copyText() {
+        const text = document.getElementById('m-full-text').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            toast.show();
+        }).catch(err => {
+            console.error('複製失敗:', err);
+            alert('複製失敗，請手動複製');
+        });
+    }
+
+</script>
+</body>
+</html>
