@@ -33,6 +33,8 @@
             transition: box-shadow 0.2s;
             cursor: pointer;
             height: 100%;
+            /* ★ 關鍵修正：加上 position: relative 限制 stretched-link 的作用範圍 */
+            position: relative; 
         }
         .copy-card:hover {
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -289,7 +291,7 @@
         return null;
     }
 
-    // ★ 新增函式：轉換圖片網址為 _m 版本
+    // ★ 函式：轉換圖片網址為 _m 版本
     function getCompressedImgUrl(url) {
         if (!url) return "";
         // 如果已經是 _m 結尾，直接回傳
@@ -371,7 +373,7 @@
             const div = document.createElement('div');
             div.className = 'col-12'; 
             
-            // ★ 修改：顯示時使用 dm_img_m (壓縮圖)，若無則顯示 placeholder
+            // 顯示時使用 dm_img_m (壓縮圖)，若無則顯示 placeholder
             const displayImg = item.dm_img_m || 'https://via.placeholder.com/400x300?text=No+Image';
 
             div.innerHTML = `
@@ -475,8 +477,6 @@
         
         if (item.assetsArray && item.assetsArray.length > 0) {
             // 加入打包下載按鈕
-            // 注意：onclick 使用全域函式，這裡我們需要把陣列傳遞過去，但直接傳陣列比較麻煩
-            // 我們把目前的 index 傳過去，函式內部再去 ALL_DATA 抓
             zipBtnContainer.innerHTML = `
                 <button class="btn btn-sm btn-dark" onclick="downloadAllAssets(${index})">
                     <i class="bi bi-file-earmark-zip"></i> 📥 一鍵打包下載素材
@@ -484,7 +484,7 @@
             `;
 
             item.assetsArray.forEach(imgUrl => {
-                // ★ 修正：顯示圖使用壓縮版，連結使用原圖
+                // 顯示圖使用壓縮版，連結使用原圖
                 const compressedUrl = getCompressedImgUrl(imgUrl);
                 
                 const col = document.createElement('div');
@@ -516,7 +516,7 @@
         });
     }
 
-    // ★ 新增：打包下載功能
+    // 打包下載功能
     async function downloadAllAssets(index) {
         const item = ALL_DATA[index];
         if (!item || !item.assetsArray || item.assetsArray.length === 0) return;
