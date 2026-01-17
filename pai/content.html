@@ -30,7 +30,7 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
-            transition: box-shadow 0.2s; /* 只保留陰影變化，移除位置移動以防抖動 */
+            transition: box-shadow 0.2s;
             cursor: pointer;
             height: 100%;
         }
@@ -95,6 +95,7 @@
             overflow: hidden;
             margin-bottom: 10px;
             border: 1px solid #ddd;
+            position: relative;
         }
         .asset-img {
             width: 100%;
@@ -105,28 +106,41 @@
         .asset-img:hover {
             transform: scale(1.05);
         }
+        
+        /* 標示原圖連結的 icon (可選) */
+        .asset-link-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            padding: 5px;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
 
         .dropdown-item { padding: 10px 20px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover { background-color: #f8f9fa; color: #f37021; }
 
-        /* 首頁風格按鈕 (無抖動版) */
+        /* 首頁風格按鈕 */
         .home-style-btn {
             display: block;
             width: 100%;
             background-color: #fff;
-            color: #dc3545; /* 配合首頁文字顏色 */
+            color: #dc3545;
             font-weight: bold;
             padding: 12px 0;
             border-radius: 50px;
             text-decoration: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
-            border: 1px solid transparent; /* 預留邊框防止抖動 */
-            transition: background-color 0.2s, color 0.2s; /* 僅改變顏色，不改變位置 */
+            border: 1px solid transparent;
+            transition: background-color 0.2s, color 0.2s;
         }
         .home-style-btn:hover {
-            background-color: #f8f9fa; /* 輕微變灰 */
+            background-color: #f8f9fa;
             color: #bd2130;
             border-color: #eee;
         }
@@ -157,7 +171,7 @@
             </div>
         </div>
 
-        <!-- 功能按鈕 (依照指定樣式更新) -->
+        <!-- 功能按鈕 -->
         <div class="d-flex gap-2">
             <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-light text-danger fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
                 ✨ 點我前往貼標神器
@@ -191,7 +205,7 @@
             </div>
             <div class="modal-body">
                 
-                <!-- 按鈕區：Word -> DM -> 貼標 -->
+                <!-- 按鈕區 -->
                 <div class="d-flex flex-wrap gap-2 mb-1 justify-content-end" id="m-action-area">
                     <!-- JS 動態生成按鈕 -->
                 </div>
@@ -211,7 +225,13 @@
 
                 <hr>
 
-                <h6 class="fw-bold mb-3"><i class="bi bi-images"></i> 行程素材圖片</h6>
+                <!-- 素材圖片區 -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-images"></i> 行程素材圖片</h6>
+                    <!-- 打包下載按鈕 (動態生成) -->
+                    <div id="m-zip-btn-container"></div>
+                </div>
+                
                 <div class="row g-3" id="m-assets-container"></div>
                 
             </div>
@@ -236,6 +256,9 @@
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 引入 JSZip 和 FileSaver 用於打包下載 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 <script>
     // ================= 設定區 =================
@@ -252,13 +275,11 @@
         fetchData();
     });
 
-    // ★ 輔助函式：模糊搜尋物件屬性 (解決大小寫或欄位名稱微小差異的問題)
+    // ★ 輔助函式：取得欄位內容
     function getField(item, possibleKeys) {
-        // 先找完全符合的
         for (let key of possibleKeys) {
             if (item[key] !== undefined && item[key] !== "") return item[key];
         }
-        // 如果沒找到，嘗試忽略大小寫搜尋
         const lowerKeys = possibleKeys.map(k => k.toLowerCase());
         for (let objKey in item) {
             if (lowerKeys.includes(objKey.toLowerCase()) && item[objKey] !== "") {
@@ -268,37 +289,34 @@
         return null;
     }
 
+    // ★ 新增函式：轉換圖片網址為 _m 版本
+    function getCompressedImgUrl(url) {
+        if (!url) return "";
+        // 如果已經是 _m 結尾，直接回傳
+        if (url.match(/_m\.(jpg|jpeg|png|gif|webp)$/i)) return url;
+        
+        // 嘗試將副檔名替換為 _m.副檔名
+        // 例如 image.jpg -> image_m.jpg
+        return url.replace(/(\.(jpg|jpeg|png|gif|webp))$/i, "_m$1");
+    }
+
     function fetchData() {
         Papa.parse(googleSheetUrl, {
             download: true,
             header: true,
             complete: function(results) {
-                // 資料處理邏輯
                 ALL_DATA = results.data
                     .map(item => {
-                        // ★ 智慧欄位對應：解決欄位名稱可能不同的問題
-                        // 嘗試抓取 'content', 'Content', '文案', '文案內容'
                         const content = getField(item, ['content', 'Content', '文案', '文案內容']);
-                        
-                        // 嘗試抓取 'title', 'Title', '標題'
                         const title = getField(item, ['title', 'Title', '標題']);
-                        
-                        // 嘗試抓取 'category', 'Category', '分類'
                         const category = getField(item, ['category', 'Category', '分類']);
-
-                        // 嘗試抓取 'dm_img', 'dm', 'DM', 'DM圖檔'
                         const dm_img = getField(item, ['dm_img', 'dm', 'DM', 'DM圖檔']);
-
-                        // ★ 修正：智慧偵測素材欄位
-                        // 嘗試抓取 'assets', 'Assets', '素材', '素材圖片', '素材連結'
                         const assetsStr = getField(item, ['assets', 'Assets', '素材', '素材圖片', '素材連結']);
 
-                        // 如果沒有標題，就視為無效資料，之後會被 filter 掉
                         if (!title) return null;
 
-                        // --- 處理多檔案下載邏輯 ---
+                        // 處理 Word 連結
                         let docFiles = [];
-                        
                         for(let i=1; i<=10; i++){
                             const link = item[`doc_link_${i}`];
                             const name = item[`doc_name_${i}`];
@@ -309,8 +327,6 @@
                                 });
                             }
                         }
-
-                        // 舊版 doc_link 相容
                         if(docFiles.length === 0 && item.doc_link && item.doc_link.trim() !== "") {
                             docFiles.push({
                                 name: "下載行程 Word",
@@ -319,39 +335,35 @@
                         }
 
                         return {
-                            ...item, // 保留原始欄位
+                            ...item, 
                             title: title,
                             content: content,
                             category: category,
-                            dm_img: dm_img,
-                            // ★ 修正：使用智慧偵測到的 assetsStr
+                            dm_img: dm_img, // 保留原圖 URL (供下載用)
+                            dm_img_m: getCompressedImgUrl(dm_img), // 產生壓縮圖 URL (供顯示用)
                             assetsArray: assetsStr ? assetsStr.split(',').map(url => url.trim()).filter(url => url !== "") : [],
                             docFiles: docFiles
                         };
                     })
-                    .filter(item => item !== null); // 過濾掉沒有標題的空資料
+                    .filter(item => item !== null);
                 
                 if (ALL_DATA.length === 0 && results.data.length > 0) {
-                     console.warn("無法識別 CSV 欄位，請檢查 Excel 表頭是否為 title, content 等。");
+                     console.warn("無法識別 CSV 欄位，請檢查 Excel 表頭。");
                 }
 
                 renderList();
             },
             error: function(err) {
                 console.error("Error:", err);
-                listContainer.innerHTML = `<div class="col-12 text-center text-danger">
-                    <h4>讀取資料失敗</h4>
-                    <p>請確認您的 Google Sheet 連結權限是否公開，或連結是否正確。</p>
-                </div>`;
+                listContainer.innerHTML = `<div class="col-12 text-center text-danger">讀取資料失敗</div>`;
             }
         });
     }
 
     function renderList() {
         listContainer.innerHTML = "";
-
         if (ALL_DATA.length === 0) {
-            listContainer.innerHTML = `<div class="col-12 text-center text-muted py-5">暫無資料 (請檢查 Google Sheet 內容與權限)</div>`;
+            listContainer.innerHTML = `<div class="col-12 text-center text-muted py-5">暫無資料</div>`;
             return;
         }
 
@@ -359,12 +371,15 @@
             const div = document.createElement('div');
             div.className = 'col-12'; 
             
+            // ★ 修改：顯示時使用 dm_img_m (壓縮圖)，若無則顯示 placeholder
+            const displayImg = item.dm_img_m || 'https://via.placeholder.com/400x300?text=No+Image';
+
             div.innerHTML = `
                 <div class="copy-card" onclick="openDetail(${index})">
                     <div class="row g-0 h-100">
                         <div class="col-md-4 col-xl-3">
                             <div class="card-img-wrapper">
-                                <img src="${item.dm_img || 'https://via.placeholder.com/400x300?text=No+Image'}" class="dm-img-main" alt="${item.title}">
+                                <img src="${displayImg}" class="dm-img-main" alt="${item.title}" loading="lazy" onerror="this.src='${item.dm_img}'">
                             </div>
                         </div>
                         <div class="col-md-8 col-xl-9">
@@ -374,7 +389,7 @@
                                 </div>
                                 <h4 class="card-title fw-bold mb-3">${item.title}</h4>
                                 <div class="copy-preview-text flex-grow-1 mb-3">
-                                    ${item.content || '<span class="text-danger">（系統偵測不到文案，請檢查 Excel 欄位名稱是否為 "content" 或 "文案"）</span>'}
+                                    ${item.content || '<span class="text-danger">（系統偵測不到文案）</span>'}
                                 </div>
                                 <div class="mt-auto text-end">
                                     <button class="btn btn-outline-secondary stretched-link">
@@ -399,7 +414,7 @@
         const actionArea = document.getElementById('m-action-area');
         actionArea.innerHTML = '';
 
-        // 1. Word 行程下載
+        // 1. Word 下載按鈕
         if (item.docFiles && item.docFiles.length > 0) {
             if (item.docFiles.length === 1) {
                 const file = item.docFiles[0];
@@ -434,7 +449,7 @@
             `;
         }
 
-        // 2. DM 下載按鈕
+        // 2. DM 下載按鈕 (使用原圖 dm_img)
         const dmLink = (item.dm_img && item.dm_img.trim() !== "") ? item.dm_img : "#";
         const dmDisabled = (dmLink === "#") ? "disabled" : "";
         const dmTarget = (dmLink === "#") ? "" : `target="_blank"`;
@@ -445,24 +460,40 @@
             </a>
         `;
 
-        // 3. 貼標神器
+        // 3. 貼標神器按鈕
         actionArea.innerHTML += `
             <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-outline-success btn-sm">
                 <i class="bi bi-magic"></i> 前往貼標神器
             </a>
         `;
 
+        // 處理素材圖片與打包下載
         const assetContainer = document.getElementById('m-assets-container');
+        const zipBtnContainer = document.getElementById('m-zip-btn-container');
         assetContainer.innerHTML = "";
+        zipBtnContainer.innerHTML = "";
         
         if (item.assetsArray && item.assetsArray.length > 0) {
+            // 加入打包下載按鈕
+            // 注意：onclick 使用全域函式，這裡我們需要把陣列傳遞過去，但直接傳陣列比較麻煩
+            // 我們把目前的 index 傳過去，函式內部再去 ALL_DATA 抓
+            zipBtnContainer.innerHTML = `
+                <button class="btn btn-sm btn-dark" onclick="downloadAllAssets(${index})">
+                    <i class="bi bi-file-earmark-zip"></i> 📥 一鍵打包下載素材
+                </button>
+            `;
+
             item.assetsArray.forEach(imgUrl => {
+                // ★ 修正：顯示圖使用壓縮版，連結使用原圖
+                const compressedUrl = getCompressedImgUrl(imgUrl);
+                
                 const col = document.createElement('div');
                 col.className = 'col-6'; 
                 col.innerHTML = `
                     <div class="asset-img-container">
                         <a href="${imgUrl}" target="_blank">
-                            <img src="${imgUrl}" class="asset-img" loading="lazy">
+                            <img src="${compressedUrl}" class="asset-img" loading="lazy" onerror="this.src='${imgUrl}'">
+                            <i class="bi bi-zoom-in asset-link-icon"></i>
                         </a>
                     </div>
                 `;
@@ -483,6 +514,58 @@
             console.error('複製失敗:', err);
             alert('複製失敗，請手動複製');
         });
+    }
+
+    // ★ 新增：打包下載功能
+    async function downloadAllAssets(index) {
+        const item = ALL_DATA[index];
+        if (!item || !item.assetsArray || item.assetsArray.length === 0) return;
+
+        const btn = document.querySelector('#m-zip-btn-container button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 打包中...`;
+        btn.disabled = true;
+
+        try {
+            const zip = new JSZip();
+            const folder = zip.folder("assets");
+            
+            // 下載所有圖片
+            const promises = item.assetsArray.map(async (url, i) => {
+                try {
+                    // 嘗試 fetch 圖片
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const blob = await response.blob();
+                    
+                    // 取得副檔名
+                    let ext = "jpg";
+                    const match = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                    if (match) ext = match[1].replace('.', '');
+                    
+                    // 加入 ZIP
+                    const filename = `image_${i + 1}.${ext}`;
+                    folder.file(filename, blob);
+                } catch (e) {
+                    console.error(`下載失敗: ${url}`, e);
+                    // 失敗時不中斷，繼續下載其他的
+                }
+            });
+
+            await Promise.all(promises);
+            
+            // 產生並下載 ZIP
+            const content = await zip.generateAsync({ type: "blob" });
+            const zipName = `${item.title.substring(0, 10)}_素材包.zip`; // 檔名使用標題前10字
+            saveAs(content, zipName);
+
+        } catch (error) {
+            console.error("打包過程發生錯誤:", error);
+            alert("打包失敗，可能是因為圖片跨網域(CORS)限制。\n建議您點擊個別圖片進行下載。");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 
 </script>
