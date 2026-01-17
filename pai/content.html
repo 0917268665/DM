@@ -141,8 +141,8 @@
         </div>
 
         <div class="text-center mt-3">
-            <a href="https://0917268665.github.io/DM/pai/" target="_blank" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
-                點我回到行程下載
+            <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
+                ✨ 點我前往貼標神器 ✨
             </a>
         </div>
     </div>
@@ -170,7 +170,7 @@
             </div>
             <div class="modal-body">
                 
-                <!-- 按鈕區：DM下載、Word下載、貼標神器 -->
+                <!-- 按鈕區：DM下載、Word下載(多檔案邏輯)、貼標神器 -->
                 <div class="d-flex flex-wrap gap-2 mb-1 justify-content-end" id="m-action-area">
                     <!-- JS 動態生成按鈕 -->
                 </div>
@@ -352,18 +352,7 @@
         const actionArea = document.getElementById('m-action-area');
         actionArea.innerHTML = '';
 
-        // 1. DM 下載按鈕 (固定顯示，若無連結則 disable)
-        const dmLink = (item.dm_img && item.dm_img.trim() !== "") ? item.dm_img : "#";
-        const dmDisabled = (dmLink === "#") ? "disabled" : "";
-        const dmTarget = (dmLink === "#") ? "" : `target="_blank"`;
-
-        actionArea.innerHTML += `
-            <a href="${dmLink}" ${dmTarget} class="btn btn-outline-danger btn-sm ${dmDisabled}">
-                <i class="bi bi-image"></i> 下載DM圖檔
-            </a>
-        `;
-
-        // 2. Word 行程下載
+        // 1. Word 行程下載 (調到第一個)
         if (item.docFiles && item.docFiles.length > 0) {
             if (item.docFiles.length === 1) {
                 // 只有一個檔案：直接顯示按鈕
@@ -378,7 +367,7 @@
                 let dropdownHtml = `
                     <div class="btn-group">
                         <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-folder-symlink"></i> 下載 Word 行程 (共${item.docFiles.length}個)
+                            <i class="bi bi-folder-symlink"></i> 下載 Word (共${item.docFiles.length}種)
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                 `;
@@ -403,10 +392,21 @@
             `;
         }
 
-        // 3. 貼標神器連結 (固定)
+        // 2. DM 下載按鈕 (調到第二個)
+        const dmLink = (item.dm_img && item.dm_img.trim() !== "") ? item.dm_img : "#";
+        const dmDisabled = (dmLink === "#") ? "disabled" : "";
+        const dmTarget = (dmLink === "#") ? "" : `target="_blank"`;
+
+        actionArea.innerHTML += `
+            <a href="${dmLink}" ${dmTarget} class="btn btn-outline-danger btn-sm ${dmDisabled}">
+                <i class="bi bi-image"></i> 下載DM
+            </a>
+        `;
+
+        // 3. 貼標神器連結 (第三個)
         actionArea.innerHTML += `
             <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-magic"></i> 前往貼標神器
+                <i class="bi bi-magic"></i> 貼標神器
             </a>
         `;
 
