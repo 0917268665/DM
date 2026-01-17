@@ -8,7 +8,6 @@
     
     <meta property="og:title" content="世興DM文案小幫手">
     <meta property="og:description" content="提供行程廣告文案與素材下載。">
-    <meta property="og:url" content="https://0917268665.github.io/DM/pai/content.html">
     <meta property="og:type" content="website">
 
     <!-- Bootstrap 5 CSS -->
@@ -19,36 +18,34 @@
     <style>
         /* 沿用原有配色與風格 */
         body { background-color: #f0f2f5; font-family: "Microsoft JhengHei", sans-serif; }
-        .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 15px; }
+        .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 20px; }
         .header-logo-container { width: 100%; text-align: center; margin-bottom: 10px; padding: 0 15px; }
         .header-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; }
         .header-title { font-size: 1.5rem; font-weight: bold; color: white; }
         .header-info { color: white; font-size: 0.9rem; line-height: 1.3; text-align: right; }
         
-        /* 列表卡片樣式調整：左圖右文 */
+        /* 列表卡片樣式調整 */
         .copy-card {
             background: white;
             border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: box-shadow 0.2s; /* 只保留陰影變化，移除位置移動以防抖動 */
             cursor: pointer;
             height: 100%;
         }
         .copy-card:hover {
-            transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .card-img-wrapper {
             width: 100%;
-            height: 250px; /* 手機版高度 */
+            height: 250px;
             background-color: #eee;
             position: relative;
             overflow: hidden;
         }
         
-        /* 電腦版左側圖片高度設定 */
         @media (min-width: 768px) {
             .card-img-wrapper {
                 height: 100%;
@@ -65,7 +62,7 @@
 
         .copy-preview-text {
             display: -webkit-box;
-            -webkit-line-clamp: 6; /* 增加預覽行數 */
+            -webkit-line-clamp: 6;
             -webkit-box-orient: vertical;
             overflow: hidden;
             color: #555;
@@ -89,7 +86,7 @@
             overflow-y: auto;
         }
 
-        /* 素材圖片格線 (每排兩張) */
+        /* 素材圖片格線 */
         .asset-img-container {
             width: 100%;
             aspect-ratio: 4/3;
@@ -109,7 +106,6 @@
             transform: scale(1.05);
         }
 
-        /* 下拉選單樣式優化 */
         .dropdown-item { padding: 10px 20px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover { background-color: #f8f9fa; color: #f37021; }
@@ -124,7 +120,7 @@
     </div>
     
     <div class="container">
-        <div class="d-flex justify-content-between align-items-end mb-2">
+        <div class="d-flex justify-content-between align-items-end mb-3">
             <div class="header-title">
                 📝 世興DM文案小幫手
             </div>
@@ -140,9 +136,13 @@
             </div>
         </div>
 
-        <div class="text-center mt-3">
-            <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
-                ✨ 點我前往貼標神器 ✨
+        <!-- 功能按鈕 (依照指定樣式更新) -->
+        <div class="d-flex gap-2">
+            <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-light text-danger fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                ✨ 點我前往貼標神器
+            </a>
+            <a href="index.html" class="btn btn-light text-primary fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                🏠 回行程下載
             </a>
         </div>
     </div>
@@ -170,12 +170,11 @@
             </div>
             <div class="modal-body">
                 
-                <!-- 按鈕區：DM下載、Word下載(多檔案邏輯)、貼標神器 -->
+                <!-- 按鈕區：Word -> DM -> 貼標 -->
                 <div class="d-flex flex-wrap gap-2 mb-1 justify-content-end" id="m-action-area">
                     <!-- JS 動態生成按鈕 -->
                 </div>
                 
-                <!-- 新增：提示文字 -->
                 <div class="text-end mb-3">
                     <small class="text-muted" style="font-size: 0.8rem;">(如需合成您的logo底標，請前往貼標神器)</small>
                 </div>
@@ -186,6 +185,7 @@
                         <i class="bi bi-clipboard"></i> 一鍵複製文案
                     </button>
                 </div>
+                <!-- 文案區塊 -->
                 <div class="copy-content-box mb-4" id="m-full-text"></div>
 
                 <hr>
@@ -218,7 +218,6 @@
 
 <script>
     // ================= 設定區 =================
-    // 更新為您提供的正確連結 (包含 gid=...)
     const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?gid=1046620833&single=true&output=csv";
     // =========================================
 
@@ -232,23 +231,49 @@
         fetchData();
     });
 
+    // ★ 輔助函式：模糊搜尋物件屬性 (解決大小寫或欄位名稱微小差異的問題)
+    function getField(item, possibleKeys) {
+        // 先找完全符合的
+        for (let key of possibleKeys) {
+            if (item[key] !== undefined && item[key] !== "") return item[key];
+        }
+        // 如果沒找到，嘗試忽略大小寫搜尋
+        const lowerKeys = possibleKeys.map(k => k.toLowerCase());
+        for (let objKey in item) {
+            if (lowerKeys.includes(objKey.toLowerCase()) && item[objKey] !== "") {
+                return item[objKey];
+            }
+        }
+        return null;
+    }
+
     function fetchData() {
         Papa.parse(googleSheetUrl, {
             download: true,
             header: true,
             complete: function(results) {
                 // 資料處理邏輯
-                // 為了保險起見，先把空行過濾掉
                 ALL_DATA = results.data
-                    .filter(item => {
-                        // 簡單檢查一下：必須要有 id 或 title，才算有效資料
-                        return item.id || item.title;
-                    })
                     .map(item => {
+                        // ★ 智慧欄位對應：解決欄位名稱可能不同的問題
+                        // 嘗試抓取 'content', 'Content', '文案', '文案內容'
+                        const content = getField(item, ['content', 'Content', '文案', '文案內容']);
+                        
+                        // 嘗試抓取 'title', 'Title', '標題'
+                        const title = getField(item, ['title', 'Title', '標題']);
+                        
+                        // 嘗試抓取 'category', 'Category', '分類'
+                        const category = getField(item, ['category', 'Category', '分類']);
+
+                        // 嘗試抓取 'dm_img', 'dm', 'DM', 'DM圖檔'
+                        const dm_img = getField(item, ['dm_img', 'dm', 'DM', 'DM圖檔']);
+
+                        // 如果沒有標題，就視為無效資料，之後會被 filter 掉
+                        if (!title) return null;
+
                         // --- 處理多檔案下載邏輯 ---
                         let docFiles = [];
                         
-                        // 1. 檢查新版欄位 doc_link_1 ~ 10
                         for(let i=1; i<=10; i++){
                             const link = item[`doc_link_${i}`];
                             const name = item[`doc_name_${i}`];
@@ -260,7 +285,7 @@
                             }
                         }
 
-                        // 2. 如果都沒有新版欄位，檢查舊版 doc_link 作為相容
+                        // 舊版 doc_link 相容
                         if(docFiles.length === 0 && item.doc_link && item.doc_link.trim() !== "") {
                             docFiles.push({
                                 name: "下載行程 Word",
@@ -269,18 +294,19 @@
                         }
 
                         return {
-                            ...item,
-                            // 素材圖片字串轉陣列
+                            ...item, // 保留原始欄位
+                            title: title,
+                            content: content,
+                            category: category,
+                            dm_img: dm_img,
                             assetsArray: item.assets ? item.assets.split(',').map(url => url.trim()).filter(url => url !== "") : [],
-                            // 整理後的檔案列表
                             docFiles: docFiles
                         };
-                    });
+                    })
+                    .filter(item => item !== null); // 過濾掉沒有標題的空資料
                 
-                // 再次確認有沒有資料
                 if (ALL_DATA.length === 0 && results.data.length > 0) {
-                     // 如果原始 results 有資料，但 filter 後全沒了，可能是欄位名稱問題
-                     console.warn("原始資料有內容，但過濾後為空，請檢查 CSV 欄位名稱是否正確 (id, title 等)。");
+                     console.warn("無法識別 CSV 欄位，請檢查 Excel 表頭是否為 title, content 等。");
                 }
 
                 renderList();
@@ -295,7 +321,6 @@
         });
     }
 
-    // 渲染列表
     function renderList() {
         listContainer.innerHTML = "";
 
@@ -311,22 +336,19 @@
             div.innerHTML = `
                 <div class="copy-card" onclick="openDetail(${index})">
                     <div class="row g-0 h-100">
-                        <!-- 圖片區塊 -->
                         <div class="col-md-4 col-xl-3">
                             <div class="card-img-wrapper">
                                 <img src="${item.dm_img || 'https://via.placeholder.com/400x300?text=No+Image'}" class="dm-img-main" alt="${item.title}">
                             </div>
                         </div>
-                        <!-- 文字區塊 -->
                         <div class="col-md-8 col-xl-9">
                             <div class="card-body h-100 d-flex flex-column p-4">
                                 <div class="mb-2">
                                     <span class="badge bg-primary">${item.category || '精選'}</span>
-                                    <small class="text-muted ms-1">${item.id}</small>
                                 </div>
                                 <h4 class="card-title fw-bold mb-3">${item.title}</h4>
                                 <div class="copy-preview-text flex-grow-1 mb-3">
-                                    ${item.content || '(無文案內容)'}
+                                    ${item.content || '<span class="text-danger">（系統偵測不到文案，請檢查 Excel 欄位名稱是否為 "content" 或 "文案"）</span>'}
                                 </div>
                                 <div class="mt-auto text-end">
                                     <button class="btn btn-outline-secondary stretched-link">
@@ -346,16 +368,14 @@
         const item = ALL_DATA[index];
         
         document.getElementById('m-title').innerText = item.title;
-        document.getElementById('m-full-text').innerText = item.content || '';
+        document.getElementById('m-full-text').innerText = item.content || '(無文案內容)';
         
-        // --- 動態生成按鈕區 ---
         const actionArea = document.getElementById('m-action-area');
         actionArea.innerHTML = '';
 
-        // 1. Word 行程下載 (調到第一個)
+        // 1. Word 行程下載
         if (item.docFiles && item.docFiles.length > 0) {
             if (item.docFiles.length === 1) {
-                // 只有一個檔案：直接顯示按鈕
                 const file = item.docFiles[0];
                 actionArea.innerHTML += `
                     <a href="${file.url}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -363,15 +383,13 @@
                     </a>
                 `;
             } else {
-                // 有多個檔案：顯示下拉選單
                 let dropdownHtml = `
                     <div class="btn-group">
                         <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-folder-symlink"></i> 下載 Word (共${item.docFiles.length}種)
+                            <i class="bi bi-folder-symlink"></i> 下載 Word 行程 (共${item.docFiles.length}個)
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                 `;
-                
                 item.docFiles.forEach(file => {
                     dropdownHtml += `
                         <li><a class="dropdown-item" href="${file.url}" target="_blank">
@@ -379,12 +397,10 @@
                         </a></li>
                     `;
                 });
-
                 dropdownHtml += `</ul></div>`;
                 actionArea.innerHTML += dropdownHtml;
             }
         } else {
-             // 若無行程檔，顯示 disable 狀態的按鈕佔位 (選用)
              actionArea.innerHTML += `
                 <a href="#" class="btn btn-outline-primary btn-sm disabled">
                     <i class="bi bi-file-word"></i> 無行程檔
@@ -392,25 +408,24 @@
             `;
         }
 
-        // 2. DM 下載按鈕 (調到第二個)
+        // 2. DM 下載按鈕
         const dmLink = (item.dm_img && item.dm_img.trim() !== "") ? item.dm_img : "#";
         const dmDisabled = (dmLink === "#") ? "disabled" : "";
         const dmTarget = (dmLink === "#") ? "" : `target="_blank"`;
 
         actionArea.innerHTML += `
             <a href="${dmLink}" ${dmTarget} class="btn btn-outline-danger btn-sm ${dmDisabled}">
-                <i class="bi bi-image"></i> 下載DM
+                <i class="bi bi-image"></i> 下載DM圖檔
             </a>
         `;
 
-        // 3. 貼標神器連結 (第三個)
+        // 3. 貼標神器
         actionArea.innerHTML += `
             <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-magic"></i> 貼標神器
+                <i class="bi bi-magic"></i> 前往貼標神器
             </a>
         `;
 
-        // --- 處理素材圖片 ---
         const assetContainer = document.getElementById('m-assets-container');
         assetContainer.innerHTML = "";
         
