@@ -9,7 +9,7 @@
     <meta property="og:title" content="世興DM、行程下載專區">
     <meta property="og:description" content="由專屬業務王麗芬服務：提供最新旅遊行程DM預覽、Word行程表下載，以及售價查詢。">
     <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
-    <meta property="og:url" content="https://0917268665.github.io/DM/">
+    <meta property="og:url" content="https://0917268665.github.io/DM/fenny/">
     <meta property="og:type" content="website">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -65,7 +65,8 @@
     </div>
     
     <div class="container">
-        <div class="d-flex justify-content-between align-items-end mb-2">
+        <!-- 第一列：標題與聯絡資訊 -->
+        <div class="d-flex justify-content-between align-items-end mb-3">
             <div class="header-title">
                 ✈️ 直售DM行程下載
             </div>
@@ -75,15 +76,19 @@
                 <div>業務：王麗芬</div>
                 <div>手機：0937019875</div>
                 </div>
-                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank">
+                <a href="https://line.me/ti/p/kxz3K9hWWp" target="_blank">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
                 </a>
             </div>
         </div>
 
-        <div class="text-center mt-3">
-            <a href="https://0917268665.github.io/DM/maker/" class="btn btn-light text-danger fw-bold w-100 shadow-sm" style="border-radius: 50px;">
-                ✨ 點我前往貼標神器 ✨
+        <!-- 第二列：功能按鈕 (左右平分) -->
+        <div class="d-flex gap-2">
+            <a href="https://0917268665.github.io/DM/fenny/maker.html" class="btn btn-light text-danger fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                ✨ 點我前往貼標神器
+            </a>
+            <a href="https://0917268665.github.io/DM/fenny/content.html" class="btn btn-light text-primary fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                📝 點我前往文案小幫手
             </a>
         </div>
     </div>
@@ -111,7 +116,8 @@
 
 <div class="container mb-5">
     <div class="row g-4" id="tour-list">
-        </div>
+        <!-- 內容由 JS 產生 -->
+    </div>
 </div>
 
 <div class="modal fade" id="warningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -145,16 +151,22 @@
                         <small class="text-muted">行程編號</small>
                         <div class="fw-bold fs-5 text-primary" id="m-id">--</div>
                     </div>
-                    <div class="col-md-8 text-md-end mt-2 mt-md-0 d-flex justify-content-md-end gap-2">
-                        <a id="m-dm-download" href="#" target="_blank" class="btn btn-outline-success">
-                            📥 下載 DM 圖檔
-                        </a>
-                        <a id="m-doc" href="#" class="btn btn-outline-primary">
-                            📥 下載 Word 行程
-                        </a>
-                    </div>
-                    <div class="col-12 text-start mt-1">
-                        <small class="text-muted" style="font-size: 0.8rem;">(手機請點擊「下載DM」後，長按圖片儲存)</small>
+                    <div class="col-md-8 mt-2 mt-md-0">
+                        <!-- 修改：按鈕樣式改為空心，顏色：[Word:藍] [DM:紅] [貼標:綠] -->
+                        <div class="d-flex justify-content-md-end gap-2 flex-wrap">
+                            <a id="m-doc" href="#" class="btn btn-outline-primary shadow-sm">
+                                📥 下載 Word
+                            </a>
+                            <a id="m-dm-download" href="#" target="_blank" class="btn btn-outline-danger shadow-sm">
+                                📥 下載 DM
+                            </a>
+                            <a href="https://0917268665.github.io/DM/fenny/maker.html" target="_blank" class="btn btn-outline-success shadow-sm">
+                                🎨 前往貼標神器
+                            </a>
+                        </div>
+                        <div class="text-end mt-1">
+                            <small class="text-muted" style="font-size: 0.8rem;">(如需合成您的logo底標，請前往貼標神器)</small>
+                        </div>
                     </div>
                 </div>
 
@@ -242,19 +254,36 @@
         fetchData();
     });
 
+    // 改用 fetch() 先抓取資料，再交給 PapaParse 解析
     function fetchData() {
-        Papa.parse(googleSheetUrl, {
-            download: true,
-            header: true,
-            complete: function(results) {
-                // 讀取資料並過濾無效列
-                ALL_TOURS = results.data.filter(item => item.id && item.title);
-                // 一開始預設顯示全部
-                DISPLAY_TOURS = ALL_TOURS;
-                renderTours();
-            },
-            error: function(err) { console.error("Error:", err); }
-        });
+        fetch(googleSheetUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("網路回應不正常");
+                }
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true, // 自動跳過空行
+                    complete: function(results) {
+                        // 讀取資料並過濾無效列
+                        ALL_TOURS = results.data.filter(item => item.id && item.title);
+                        // 一開始預設顯示全部
+                        DISPLAY_TOURS = ALL_TOURS;
+                        renderTours();
+                    },
+                    error: function(err) {
+                         console.error("CSV 解析錯誤:", err);
+                         tourList.innerHTML = `<div class="alert alert-danger">無法解析行程資料，請稍後再試。</div>`;
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("讀取 Excel 失敗:", error);
+                tourList.innerHTML = `<div class="alert alert-danger">無法讀取行程資料，請檢查網路或連結。</div>`;
+            });
     }
 
     // ★ 新增功能：分類篩選邏輯
@@ -268,7 +297,6 @@
             DISPLAY_TOURS = ALL_TOURS;
         } else {
             // 檢查 Excel 中的 category 欄位是否包含該分類文字
-            // 使用 includes 是為了防呆，例如 Excel 填 "日本旅遊" 也能被 "日本" 篩選到
             DISPLAY_TOURS = ALL_TOURS.filter(tour => {
                 return tour.category && tour.category.includes(category);
             });
@@ -287,11 +315,7 @@
         }
 
         DISPLAY_TOURS.forEach((tour) => {
-            // 注意：因為過濾過，所以 index 不能直接用，要傳遞整包 tour 物件或重新尋找 index
-            // 這裡我們改用直接傳遞 tour 物件的方式，會比較安全，但為了不大幅改動 openTour 結構
-            // 我們使用一個小技巧：找出該 tour 在原始 ALL_TOURS 的索引
             const originalIndex = ALL_TOURS.indexOf(tour);
-
             const thumbSrc = getResizedPath(tour.img, 'thumb');
             const col = document.createElement('div');
             col.className = 'col-lg-3 col-md-4 col-sm-6'; 
@@ -321,24 +345,26 @@
     let currentTour = null;
 
     function openTour(index) {
-        // 使用原始資料陣列來獲取正確的行程
         currentTour = ALL_TOURS[index];
         
         document.getElementById('m-title').innerText = currentTour.title;
         document.getElementById('m-id').innerText = currentTour.id;
         document.getElementById('m-remark').innerText = currentTour.remark;
 
-        // 預覽圖
         const previewSrc = getResizedPath(currentTour.img, 'preview');
-        document.getElementById('m-preview-img').src = previewSrc; 
+        const previewImg = document.getElementById('m-preview-img');
+        previewImg.src = previewSrc;
+        // 確保預覽圖若讀取失敗，會顯示原圖
+        previewImg.onerror = function() {
+            this.onerror = null; // 防止無窮迴圈
+            this.src = currentTour.img;
+        };
         
-        // 下載按鈕 (原圖)
         const originalSrc = getResizedPath(currentTour.img, 'original');
         const dmBtn = document.getElementById('m-dm-download');
         dmBtn.href = originalSrc;
         dmBtn.setAttribute("target", "_blank");
 
-        // Word 下載
         const docBtn = document.getElementById('m-doc');
         docBtn.href = convertToDirectLink(currentTour.doc_link, false);
         docBtn.setAttribute("target", "_blank");

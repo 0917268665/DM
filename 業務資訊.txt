@@ -1,0 +1,57 @@
+記得網址也要更改    
+<meta property="og:description" content="由專屬業務陳彥百服務：提供最新旅遊行程DM、Word行程表下載，以及售價查詢。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/pai/">
+
+                    <div>業務：陳彥百(百百)</div>
+                    <div>手機：0917268665</div>
+                </div>
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank">
+
+                <p>同業夥伴請先與業務-百百聯繫。</p>
+
+
+
+
+    <meta property="og:description" content="由專屬業務蔡雅筑服務：提供最新旅遊行程DM預覽、Word行程表下載，以及售價查詢。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/lisa/">
+    <meta property="og:type" content="website">
+
+                <div>業務：蔡雅筑</div>
+                <div>手機：0920277072</div>
+                </div>
+                <a href="https://line.me/ti/p/peLdih_4DD" target="_blank">
+
+                <p>同業夥伴請先與業務-雅筑聯繫。</p>
+
+
+
+   <meta property="og:description" content="由專屬業務王麗芬服務：提供最新旅遊行程DM預覽、Word行程表下載，以及售價查詢。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/fenny/">
+
+                <div>業務：王麗芬</div>
+                <div>手機：0937019875</div>
+                </div>
+                <a href="https://line.me/ti/p/kxz3K9hWWp" target="_blank">
+
+                <p>同業夥伴請先與業務-麗芬聯繫。</p>
+
+
+
+
+
+
+    <meta property="og:description" content="由專屬業務劉玉薇服務：提供最新旅遊行程DM預覽、Word行程表下載，以及售價查詢。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/wei/">
+
+                <div>業務：劉玉薇(小黑)</div>
+                <div>手機：0989439193</div>
+                </div>
+                <a href="https://line.me/ti/p/eAETx3eVDg" target="_blank">
+
+                <p>同業夥伴請先與業務-小黑聯繫。</p>
+
+記得網址也要更改
