@@ -71,11 +71,10 @@
 
     <!-- Header Section (Full Width Style) -->
     <header class="w-full bg-[#f37021] shadow-sm mb-6 pt-3 pb-4">
-        <!-- 修改：將 max-w-4xl 改為 max-w-7xl 以配合首頁寬度 -->
         <div class="max-w-7xl mx-auto px-4">
             <!-- Logo Container -->
-            <div class="text-center mb-2">
-                <img src="../logo.png" alt="新魅力旅遊 Logo" class="h-12 object-contain mx-auto" onerror="this.style.display='none'">
+            <div class="text-center mb-2 px-4">
+                <img src="../logo.png" alt="新魅力旅遊 Logo" class="w-full max-w-[400px] h-auto object-contain mx-auto" onerror="this.style.display='none'">
             </div>
             
             <!-- Info Row -->
@@ -105,7 +104,6 @@
     </header>
 
     <!-- Main Container -->
-    <!-- 修改：將 max-w-4xl 改為 max-w-7xl 以配合首頁寬度 -->
     <div class="w-full max-w-7xl px-4 pb-8"> 
         
         <div class="text-center mb-6 w-full">
@@ -239,10 +237,8 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // --- 設定：Google Sheet CSV 連結 (已混淆) ---
-        // 原始連結: https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv
-        const ENCODED_SHEET_URL = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlRjUENvYmVpeDJXQlU2OWZ4U2J4OUlLRkp0UHRQMDRkdXRyY0hwLUtWOEx2bkFFY1VFcngteDB6ZkdiQkJZYVVXdHpnUi1aWlI2VzZCL3B1Yj9vdXRwdXQ9Y3N2";
-        const SHEET_CSV_URL = atob(ENCODED_SHEET_URL);
+        // --- 設定：Google Sheet CSV 連結 (已還原為明碼，確保穩定性) ---
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
 
         // 資料變數
         let dmLibrary = []; // 將由 CSV 填充
@@ -250,7 +246,7 @@
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const dmInput = document.getElementById('dmInput'); // Added Back
+        const dmInput = document.getElementById('dmInput');
         const footerInput = document.getElementById('footerInput');
         const controlsArea = document.getElementById('controlsArea');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -277,11 +273,10 @@
 
         // --- Event Listeners ---
 
-        // 新增：監聽 DM 上傳，並更新檔名
+        // 監聽 DM 上傳，並更新檔名
         dmInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(file) {
-                // 使用上傳的檔名 (去除副檔名)
                 currentDmName = file.name.replace(/\.[^/.]+$/, "");
                 loadFile(file, 'dm');
             }
