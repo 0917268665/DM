@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f0f2f5;
         }
         canvas {
             background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
@@ -67,97 +67,143 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+<body class="flex flex-col items-center min-h-screen">
 
-    <!-- Header -->
-    <div class="text-center mb-8 max-w-2xl w-full">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">世興 DM 貼標神器</h1>
-        <p class="text-gray-600">
-            簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載
-        </p>
-    </div>
-
-    <!-- Main Container -->
-    <div class="bg-white rounded-xl shadow-lg p-6 max-w-4xl w-full grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-        
-        <!-- Controls Section (Left) -->
-        <div class="md:col-span-1 space-y-6">
+    <!-- Header Section (Full Width Style) -->
+    <header class="w-full bg-[#f37021] shadow-sm mb-6 pt-3 pb-4">
+        <!-- 修改：將 max-w-4xl 改為 max-w-7xl 以配合首頁寬度 -->
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- Logo Container -->
+            <div class="text-center mb-2">
+                <img src="../logo.png" alt="新魅力旅遊 Logo" class="h-12 object-contain mx-auto" onerror="this.style.display='none'">
+            </div>
             
-            <!-- Step 1 -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">
-                    1. 選擇行程 DM
-                </label>
-                
-                <!-- DM Library Button Only -->
-                <button onclick="toggleLibrary()" class="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold py-2 px-4 rounded transition mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    從 DM 圖庫選取
-                </button>
-                
-                <!-- Removed Upload Input for DM -->
-            </div>
-
-            <!-- Step 2 -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">
-                    2. 上傳您的底標
-                </label>
-                <input type="file" id="footerInput" accept="image/*" 
-                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition"/>
-            </div>
-
-            <hr class="border-gray-200">
-
-            <!-- Step 3 Controls -->
-            <div id="controlsArea" class="opacity-50 pointer-events-none transition-opacity duration-200">
-                <h3 class="font-semibold text-gray-700 mb-3">3. 調整底標位置</h3>
-                
-                <div class="slider-container">
-                    <span class="slider-label">上下位置</span>
-                    <input type="range" id="yPos" min="-500" max="500" value="0">
+            <!-- Info Row -->
+            <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-white/30 pb-4 mb-4">
+                <div class="text-xl font-bold text-white">
+                    📸 世興 DM 貼標神器
                 </div>
                 
-                <div class="slider-container">
-                    <span class="slider-label">左右位置</span>
-                    <input type="range" id="xPos" min="-500" max="500" value="0">
-                </div>
-
-                <div class="slider-container">
-                    <span class="slider-label">縮放大小</span>
-                    <input type="range" id="scale" min="10" max="200" value="100">
-                </div>
-
-                <div class="flex gap-2 mt-4">
-                    <button onclick="fitToWidth()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
-                        填滿寬度
-                    </button>
-                    <button onclick="resetFooter()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
-                        重置位置
-                    </button>
+                <div class="flex items-center gap-3">
+                    <div class="text-right text-sm text-white font-medium leading-tight">
+                        <div>業務：陳彥百(百百)</div>
+                        <div>手機：0917268665</div>
+                    </div>
+                    <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="hover:opacity-80 transition">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" class="h-8 w-auto">
+                    </a>
                 </div>
             </div>
 
-            <!-- Download Button -->
-            <button onclick="downloadImage()" id="downloadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4" disabled>
-                下載完成圖
-            </button>
-
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-4">
-                <p class="text-xs text-yellow-700">
-                    <span class="font-bold">提示：</span> 您也可以直接在右側預覽圖上「拖曳」底標來移動位置。
-                </p>
+            <!-- Button -->
+            <div class="text-center">
+                 <a href="https://0917268665.github.io/DM/pai/" class="block w-full bg-white text-[#f37021] font-bold py-2 rounded-full shadow-sm hover:bg-gray-50 transition">
+                    點我回到行程下載
+                </a>
             </div>
         </div>
+    </header>
 
-        <!-- Preview Section (Right) -->
-        <div class="md:col-span-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden min-h-[400px]" id="canvasWrapper">
-            <p id="placeholderText" class="text-gray-400 absolute pointer-events-none text-center">
-                預覽區域<br><span class="text-sm">請先從圖庫選擇圖片</span>
+    <!-- Main Container -->
+    <!-- 修改：將 max-w-4xl 改為 max-w-7xl 以配合首頁寬度 -->
+    <div class="w-full max-w-7xl px-4 pb-8"> 
+        
+        <div class="text-center mb-6 w-full">
+            <p class="text-gray-600">
+                簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載
             </p>
-            <canvas id="canvas" class="max-w-full max-h-[80vh] cursor-move hidden"></canvas>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 w-full grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+            
+            <!-- Controls Section (Left) -->
+            <div class="md:col-span-1 space-y-6">
+                
+                <!-- Step 1 -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">
+                        1. 選擇行程 DM
+                    </label>
+                    
+                    <!-- DM Library Button -->
+                    <button onclick="toggleLibrary()" class="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold py-2 px-4 rounded transition mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        從 DM 圖庫選取
+                    </button>
+
+                    <!-- OR Separator -->
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-gray-300"></div>
+                        <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">或上傳檔案</span>
+                        <div class="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <!-- Upload Input for DM -->
+                    <input type="file" id="dmInput" accept="image/*" 
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"/>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">
+                        2. 上傳您的底標
+                    </label>
+                    <input type="file" id="footerInput" accept="image/*" 
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition"/>
+                </div>
+
+                <hr class="border-gray-200">
+
+                <!-- Step 3 Controls -->
+                <div id="controlsArea" class="opacity-50 pointer-events-none transition-opacity duration-200">
+                    <h3 class="font-semibold text-gray-700 mb-3">3. 調整底標位置</h3>
+                    
+                    <div class="slider-container">
+                        <span class="slider-label">上下位置</span>
+                        <input type="range" id="yPos" min="-500" max="500" value="0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <span class="slider-label">左右位置</span>
+                        <input type="range" id="xPos" min="-500" max="500" value="0">
+                    </div>
+
+                    <div class="slider-container">
+                        <span class="slider-label">縮放大小</span>
+                        <input type="range" id="scale" min="10" max="200" value="100">
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="fitToWidth()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
+                            填滿寬度
+                        </button>
+                        <button onclick="resetFooter()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
+                            重置位置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <button onclick="downloadImage()" id="downloadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4" disabled>
+                    下載完成圖
+                </button>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-4">
+                    <p class="text-xs text-yellow-700">
+                        <span class="font-bold">提示：</span> 您也可以直接在右側預覽圖上「拖曳」底標來移動位置。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Preview Section (Right) -->
+            <div class="md:col-span-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden min-h-[400px]" id="canvasWrapper">
+                <p id="placeholderText" class="text-gray-400 absolute pointer-events-none text-center">
+                    預覽區域<br><span class="text-sm">請上傳圖片或從圖庫選擇</span>
+                </p>
+                <canvas id="canvas" class="max-w-full max-h-[80vh] cursor-move hidden"></canvas>
+            </div>
         </div>
     </div>
 
@@ -193,8 +239,10 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // --- 設定：Google Sheet CSV 連結 ---
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
+        // --- 設定：Google Sheet CSV 連結 (已混淆) ---
+        // 原始連結: https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv
+        const ENCODED_SHEET_URL = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlRjUENvYmVpeDJXQlU2OWZ4U2J4OUlLRkp0UHRQMDRkdXRyY0hwLUtWOEx2bkFFY1VFcngteDB6ZkdiQkJZYVVXdHpnUi1aWlI2VzZCL3B1Yj9vdXRwdXQ9Y3N2";
+        const SHEET_CSV_URL = atob(ENCODED_SHEET_URL);
 
         // 資料變數
         let dmLibrary = []; // 將由 CSV 填充
@@ -202,6 +250,7 @@
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const dmInput = document.getElementById('dmInput'); // Added Back
         const footerInput = document.getElementById('footerInput');
         const controlsArea = document.getElementById('controlsArea');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -218,7 +267,7 @@
         // State
         let dmImg = new Image();
         let footerImg = new Image();
-        let currentDmName = "行程DM"; // 預設檔名變數
+        let currentDmName = "行程DM"; 
         let footerState = {
             x: 0, y: 0, width: 0, height: 0, scale: 1,
             originalWidth: 0, originalHeight: 0
@@ -227,6 +276,16 @@
         let lastMouseX, lastMouseY;
 
         // --- Event Listeners ---
+
+        // 新增：監聽 DM 上傳，並更新檔名
+        dmInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                // 使用上傳的檔名 (去除副檔名)
+                currentDmName = file.name.replace(/\.[^/.]+$/, "");
+                loadFile(file, 'dm');
+            }
+        });
 
         footerInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'footer'));
 
@@ -323,10 +382,8 @@
             libraryGrid.innerHTML = dmLibrary.map(dm => {
                 const thumbnailUrl = dm.url.replace(/(\.[^./?]+)(\?.*)?$/, '_m$1$2');
                 
-                // 處理名稱中的特殊字元，避免破壞 HTML
                 const safeName = dm.name.replace(/'/g, "\\'");
 
-                // 在 onclick 事件中同時傳入 URL 和 Name
                 return `
                 <div class="dm-item cursor-pointer bg-white rounded-lg shadow overflow-hidden border border-gray-200 transition-transform duration-200 group"
                      onclick="selectDmFromLibrary('${dm.url}', '${safeName}')">
@@ -355,6 +412,9 @@
             }
             toggleLibrary();
             loadFromUrl(url);
+            
+            // 清空上傳 input，避免混淆
+            dmInput.value = '';
         }
 
         function loadFromUrl(url) {
@@ -468,7 +528,6 @@
             if (footerImg.src) ctx.drawImage(footerImg, footerState.x, footerState.y, footerState.width, footerState.height);
             
             const link = document.createElement('a');
-            // 修改：使用 DM 名稱作為檔名
             link.download = currentDmName + '已加底標.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
