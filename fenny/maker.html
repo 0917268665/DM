@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>世興 DM 貼標神器</title>
-    <!-- 使用 Tailwind CSS 快速美化介面 -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f0f2f5;
         }
+        /* Header 樣式 (與 index.html 完全一致) */
+        .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 15px; }
+        .header-logo-container { width: 100%; text-align: center; margin-bottom: 10px; padding: 0 15px; }
+        .header-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; }
+        .header-title { font-size: 1.5rem; font-weight: bold; color: white; }
+        .header-info { color: white; font-size: 0.9rem; line-height: 1.3; text-align: right; }
+
+        /* Canvas 樣式 */
         canvas {
             background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
                               linear-gradient(-45deg, #ccc 25%, transparent 25%), 
@@ -19,39 +27,21 @@
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
             background-color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            height: auto;
         }
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .slider-label {
-            min-width: 80px;
-            font-size: 0.9rem;
-            color: #4b5563;
-        }
-        input[type="range"] {
-            flex-grow: 1;
-            accent-color: #2563eb;
-        }
-        /* Modal Animation */
-        .modal {
-            transition: opacity 0.3s ease-in-out;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .modal.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        /* Grid Item Hover */
-        .dm-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        /* Loading Spinner */
+        
+        /* Modal 樣式微調 */
+        .modal-header { border-bottom: none; }
+        .dm-item { cursor: pointer; transition: transform 0.2s; }
+        .dm-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* 滑動條容器 */
+        .slider-row { display: flex; align-items: center; margin-bottom: 10px; }
+        .slider-label { min-width: 80px; font-size: 0.9rem; color: #4b5563; }
+        
+        /* 載入動畫 */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -61,48 +51,41 @@
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen">
+<body>
 
-    <!-- Header Section (Full Width Style) -->
-    <header class="w-full bg-[#f37021] shadow-sm mb-6 pt-3 pb-4">
-        <div class="max-w-7xl mx-auto px-4">
-            <!-- Logo Container -->
-            <div class="text-center mb-2 px-4">
-                <img src="../logo.png" alt="新魅力旅遊 Logo" class="w-full max-w-[400px] h-auto object-contain mx-auto" onerror="this.style.display='none'">
-            </div>
-            
-            <!-- Info Row -->
-            <!-- 修改：移除 border-b border-white/30 以去掉分隔線 -->
-            <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 pb-4">
-                <div class="text-xl font-bold text-white">
+    <!-- Header Section (完全複製 index.html) -->
+    <header class="custom-header shadow-sm mb-3">
+        <div class="header-logo-container">
+            <!-- Logo 路徑記得確認 -->
+            <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo" onerror="this.style.display='none'">
+        </div>
+        
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-end mb-2">
+                <div class="header-title">
+                    <!-- 修改：移除 DM 兩側的空格，改為 "📸 世興DM貼標神器" -->
                     📸 世興DM貼標神器
                 </div>
                 
-                <div class="flex items-center gap-3">
-                    <div class="text-right text-sm text-white font-medium leading-tight">
+                <div class="header-info d-flex align-items-center">
+                    <div class="me-2">
                 <div>業務：王麗芬</div>
                 <div>手機：0937019875</div>
-                    </div>
-                    <a href="https://line.me/ti/p/kxz3K9hWWp" target="_blank" class="hover:opacity-80 transition">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" class="h-8 w-auto">
+                </div>
+                <a href="https://line.me/ti/p/kxz3K9hWWp" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
                     </a>
                 </div>
             </div>
-
-            <!-- Buttons (Dual Button Layout) -->
-            <!-- 修改：將單一按鈕改為雙按鈕並排，並套用指定樣式 -->
-            <div class="flex gap-3">
-                 <!-- 修改：按鈕文字改為 "📝 點我前往文案小幫手" -->
-                 <a href="https://0917268665.github.io/DM/fenny/content.html" target="_blank" class="flex-1 bg-white text-red-500 font-bold py-2 rounded-full shadow-sm hover:bg-gray-50 transition text-center">
+    
+            <div class="d-flex gap-2 mt-3">
+                <a href="https://0917268665.github.io/DM/fenny/content.html" target="_blank" class="btn btn-light text-danger fw-bold w-50 shadow-sm" style="border-radius: 50px;">
                     📝 點我前往文案小幫手
                 </a>
-                 <a href="https://0917268665.github.io/DM/fenny/" class="flex-1 bg-white text-blue-600 font-bold py-2 rounded-full shadow-sm hover:bg-gray-50 transition text-center">
+                <a href="https://0917268665.github.io/DM/fenny/" class="btn btn-light text-primary fw-bold w-50 shadow-sm" style="border-radius: 50px;">
                     🏠 回行程下載
                 </a>
             </div>
@@ -110,127 +93,108 @@
     </header>
 
     <!-- Main Container -->
-    <div class="w-full max-w-7xl px-4 pb-8"> 
-        
-        <div class="text-center mb-6 w-full">
-            <p class="text-gray-600">
-                簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載
-            </p>
+    <div class="container pb-5">
+        <div class="text-center mb-4 text-muted">
+            <small>簡單三步驟：選取行程 DM &rarr; 上傳您的底標 &rarr; 調整位置並下載</small>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 w-full grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-            
+        <div class="row g-4">
             <!-- Controls Section (Left) -->
-            <div class="md:col-span-1 space-y-6">
-                
-                <!-- Step 1 -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-gray-700">
-                        1. 選擇行程 DM
-                    </label>
-                    
-                    <!-- DM Library Button Only -->
-                    <button onclick="toggleLibrary()" class="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold py-2 px-4 rounded transition mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        從 DM 圖庫選取
+            <div class="col-md-4">
+                <div class="bg-white p-4 rounded shadow-sm">
+                    <!-- Step 1 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">1. 選擇行程 DM</label>
+                        <button onclick="toggleLibrary()" class="btn btn-outline-primary w-100 py-2">
+                            📂 從 DM 圖庫選取
+                        </button>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">2. 上傳您的底標</label>
+                        <input class="form-control" type="file" id="footerInput" accept="image/*">
+                        <div class="form-text">支援 PNG 透明背景圖檔效果最佳</div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Step 3 Controls -->
+                    <div id="controlsArea" class="opacity-50 pe-none user-select-none transition">
+                        <h6 class="fw-bold mb-3">3. 調整底標位置</h6>
+                        
+                        <div class="slider-row">
+                            <span class="slider-label">上下位置</span>
+                            <input type="range" class="form-range" id="yPos" min="-500" max="500" value="0">
+                        </div>
+                        
+                        <div class="slider-row">
+                            <span class="slider-label">左右位置</span>
+                            <input type="range" class="form-range" id="xPos" min="-500" max="500" value="0">
+                        </div>
+
+                        <div class="slider-row">
+                            <span class="slider-label">縮放大小</span>
+                            <input type="range" class="form-range" id="scale" min="10" max="200" value="100">
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button onclick="fitToWidth()" class="btn btn-light flex-fill border">填滿寬度</button>
+                            <button onclick="resetFooter()" class="btn btn-light flex-fill border">重置位置</button>
+                        </div>
+                    </div>
+
+                    <!-- Download Button -->
+                    <button onclick="downloadImage()" id="downloadBtn" class="btn btn-primary w-100 mt-4 py-2 fw-bold" disabled>
+                        📥 下載完成圖
                     </button>
 
-                    <!-- 修改：移除了上傳檔案 input 與分隔線 -->
-                </div>
-
-                <!-- Step 2 -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-gray-700">
-                        2. 上傳您的底標
-                    </label>
-                    <input type="file" id="footerInput" accept="image/*" 
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition"/>
-                </div>
-
-                <hr class="border-gray-200">
-
-                <!-- Step 3 Controls -->
-                <div id="controlsArea" class="opacity-50 pointer-events-none transition-opacity duration-200">
-                    <h3 class="font-semibold text-gray-700 mb-3">3. 調整底標位置</h3>
-                    
-                    <div class="slider-container">
-                        <span class="slider-label">上下位置</span>
-                        <input type="range" id="yPos" min="-500" max="500" value="0">
+                    <div class="alert alert-warning mt-3 mb-0 py-2 small">
+                        <strong>提示：</strong> 您也可以直接在右側預覽圖上「拖曳」底標來移動位置。
                     </div>
-                    
-                    <div class="slider-container">
-                        <span class="slider-label">左右位置</span>
-                        <input type="range" id="xPos" min="-500" max="500" value="0">
-                    </div>
-
-                    <div class="slider-container">
-                        <span class="slider-label">縮放大小</span>
-                        <input type="range" id="scale" min="10" max="200" value="100">
-                    </div>
-
-                    <div class="flex gap-2 mt-4">
-                        <button onclick="fitToWidth()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
-                            填滿寬度
-                        </button>
-                        <button onclick="resetFooter()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded text-sm transition">
-                            重置位置
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Download Button -->
-                <button onclick="downloadImage()" id="downloadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4" disabled>
-                    下載完成圖
-                </button>
-
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-4">
-                    <p class="text-xs text-yellow-700">
-                        <span class="font-bold">提示：</span> 您也可以直接在右側預覽圖上「拖曳」底標來移動位置。
-                    </p>
                 </div>
             </div>
 
             <!-- Preview Section (Right) -->
-            <div class="md:col-span-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center relative overflow-hidden min-h-[400px]" id="canvasWrapper">
-                <p id="placeholderText" class="text-gray-400 absolute pointer-events-none text-center">
-                    預覽區域<br><span class="text-sm">請從圖庫選擇圖片</span>
-                </p>
-                <canvas id="canvas" class="max-w-full max-h-[80vh] cursor-move hidden"></canvas>
+            <div class="col-md-8">
+                <div class="bg-white p-4 rounded shadow-sm border border-dashed d-flex align-items-center justify-content-center" style="min-height: 500px;" id="canvasWrapper">
+                    <p id="placeholderText" class="text-muted text-center pointer-events-none">
+                        預覽區域<br><small>請從圖庫選擇圖片</small>
+                    </p>
+                    <canvas id="canvas" class="d-none"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- DM Library Modal -->
-    <div id="libraryModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black bg-opacity-60" onclick="toggleLibrary()"></div>
-        
-        <!-- Modal Content -->
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col relative z-10 overflow-hidden">
-            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 class="text-xl font-bold text-gray-800">選擇行程 DM</h3>
-                <button onclick="toggleLibrary()" class="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto bg-gray-100 min-h-[200px]" id="libraryContainer">
-                <!-- Loading State -->
-                <div id="libraryLoading" class="text-center text-gray-500 mt-8">
-                    <div class="loader"></div>
-                    <p>正在從 Google Sheet 讀取 DM 列表...</p>
+    <!-- DM Library Modal (Bootstrap 5) -->
+    <div class="modal fade" id="libraryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">選擇行程 DM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                
-                <div id="libraryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 hidden">
-                    <!-- Javascript will inject items here -->
+                <div class="modal-body bg-light">
+                    <!-- Loading State -->
+                    <div id="libraryLoading" class="text-center text-muted mt-4">
+                        <div class="loader"></div>
+                        <p class="mt-2">正在讀取 DM 列表...</p>
+                    </div>
+                    
+                    <div id="libraryGrid" class="row g-3 d-none">
+                        <!-- Javascript will inject items here -->
+                    </div>
                 </div>
-            </div>
-            
-            <div class="p-4 border-t bg-white text-right">
-                <button onclick="toggleLibrary()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">取消</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- 引入 Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- JavaScript Logic -->
     <script>
@@ -238,17 +202,16 @@
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
 
         // 資料變數
-        let dmLibrary = []; // 將由 CSV 填充
+        let dmLibrary = []; 
         let isLibraryLoaded = false;
+        let bsModal = null; // Bootstrap Modal Instance
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        // 修改：移除了 const dmInput = ...
         const footerInput = document.getElementById('footerInput');
         const controlsArea = document.getElementById('controlsArea');
         const downloadBtn = document.getElementById('downloadBtn');
         const placeholderText = document.getElementById('placeholderText');
-        const libraryModal = document.getElementById('libraryModal');
         const libraryGrid = document.getElementById('libraryGrid');
         const libraryLoading = document.getElementById('libraryLoading');
         
@@ -268,9 +231,12 @@
         let isDragging = false;
         let lastMouseX, lastMouseY;
 
-        // --- Event Listeners ---
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', function() {
+            bsModal = new bootstrap.Modal(document.getElementById('libraryModal'));
+        });
 
-        // 修改：移除了 dmInput 的事件監聽器
+        // --- Event Listeners ---
 
         footerInput.addEventListener('change', (e) => loadFile(e.target.files[0], 'footer'));
 
@@ -282,6 +248,7 @@
         canvas.addEventListener('mousemove', drag);
         window.addEventListener('mouseup', endDrag);
         
+        // Touch events
         canvas.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
             const mouseEvent = new MouseEvent('mousedown', {
@@ -301,13 +268,11 @@
 
         canvas.addEventListener('touchend', () => window.dispatchEvent(new MouseEvent('mouseup')));
 
-        // --- Library Logic (Google Sheet Integration) ---
+        // --- Library Logic ---
 
         function toggleLibrary() {
-            libraryModal.classList.toggle('active');
-            
-            // 初次開啟時才載入資料
-            if (libraryModal.classList.contains('active') && !isLibraryLoaded) {
+            bsModal.show();
+            if (!isLibraryLoaded) {
                 loadLibraryFromSheet();
             }
         }
@@ -325,7 +290,7 @@
                 
             } catch (error) {
                 console.error("Error loading sheet:", error);
-                libraryLoading.innerHTML = `<p class="text-red-500">載入失敗，請確認網路或試算表權限。</p>`;
+                libraryLoading.innerHTML = `<p class="text-danger">載入失敗，請確認網路。</p>`;
             }
         }
 
@@ -356,58 +321,56 @@
         }
 
         function renderLibrary() {
-            libraryLoading.classList.add('hidden');
-            libraryGrid.classList.remove('hidden');
+            libraryLoading.classList.add('d-none');
+            libraryGrid.classList.remove('d-none');
 
             if (dmLibrary.length === 0) {
-                libraryGrid.innerHTML = '<p class="col-span-3 text-center text-gray-500">沒有找到 DM 資料</p>';
+                libraryGrid.innerHTML = '<p class="text-center text-muted">沒有找到 DM 資料</p>';
                 return;
             }
 
             libraryGrid.innerHTML = dmLibrary.map(dm => {
                 const thumbnailUrl = dm.url.replace(/(\.[^./?]+)(\?.*)?$/, '_m$1$2');
-                
                 const safeName = dm.name.replace(/'/g, "\\'");
 
                 return `
-                <div class="dm-item cursor-pointer bg-white rounded-lg shadow overflow-hidden border border-gray-200 transition-transform duration-200 group"
-                     onclick="selectDmFromLibrary('${dm.url}', '${safeName}')">
-                    <div class="h-48 overflow-hidden bg-gray-200 flex items-center justify-center relative">
-                        <img src="${thumbnailUrl}" 
-                             onerror="this.onerror=null;this.src='${dm.url}';"
-                             alt="${dm.name}" 
-                             class="w-full h-full object-cover" 
-                             loading="lazy">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all"></div>
-                    </div>
-                    <div class="p-3">
-                        <p class="font-bold text-gray-700 text-sm text-center truncate" title="${dm.name}">${dm.name}</p>
+                <div class="col-6 col-md-4">
+                    <div class="card h-100 dm-item" onclick="selectDmFromLibrary('${dm.url}', '${safeName}')">
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center overflow-hidden" style="height: 180px;">
+                            <img src="${thumbnailUrl}" 
+                                 onerror="this.onerror=null;this.src='${dm.url}';"
+                                 alt="${dm.name}" 
+                                 class="w-100 h-100 object-fit-cover" 
+                                 loading="lazy">
+                        </div>
+                        <div class="card-body p-2 text-center">
+                            <small class="fw-bold text-dark text-truncate d-block" title="${dm.name}">${dm.name}</small>
+                        </div>
                     </div>
                 </div>
             `;
             }).join('');
         }
 
-        // 修改：接收 name 參數並存入 currentDmName
         function selectDmFromLibrary(url, name) {
             if(name) {
                 currentDmName = name;
             } else {
                 currentDmName = "行程DM";
             }
-            toggleLibrary();
+            bsModal.hide(); // Close modal
             loadFromUrl(url);
-            
-            // 修改：移除了 dmInput.value = '';
         }
 
         function loadFromUrl(url) {
             const img = new Image();
             img.crossOrigin = "Anonymous"; 
             
-            placeholderText.innerHTML = "圖片載入中...";
-            placeholderText.classList.remove('hidden');
-            canvas.classList.add('hidden');
+            placeholderText.innerHTML = `
+                <div class="loader"></div>
+                <p>圖片載入中...</p>
+            `;
+            canvas.classList.add('d-none');
 
             img.onload = () => {
                 dmImg = img;
@@ -417,8 +380,8 @@
             };
             
             img.onerror = () => {
-                alert("無法載入圖片。可能原因：\n1. 連結無效\n2. 圖片不支援跨域存取 (CORS)\n3. 這是 Google Drive 圖片 (需轉換格式)");
-                placeholderText.innerHTML = "圖片載入失敗，請重試";
+                alert("無法載入圖片，請重試。");
+                placeholderText.innerHTML = "圖片載入失敗";
             };
             
             img.src = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
@@ -450,8 +413,8 @@
         function initCanvas() {
             canvas.width = dmImg.width;
             canvas.height = dmImg.height;
-            canvas.classList.remove('hidden');
-            placeholderText.classList.add('hidden');
+            canvas.classList.remove('d-none');
+            placeholderText.classList.add('d-none');
             if (footerImg.src) resetFooter();
         }
 
@@ -459,7 +422,8 @@
             footerState.originalWidth = footerImg.width;
             footerState.originalHeight = footerImg.height;
             resetFooter();
-            controlsArea.classList.remove('opacity-50', 'pointer-events-none');
+            // Enable controls
+            controlsArea.classList.remove('opacity-50', 'pe-none');
         }
 
         function resetFooter() {
@@ -526,8 +490,11 @@
         function startDrag(e) {
             if (!footerImg.src) return;
             const rect = canvas.getBoundingClientRect();
+            // Need to account for Bootstrap layout causing canvas scaling
+            // Ideally canvas is max-width: 100%, so we calculate ratio
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
+            
             const mouseX = (e.clientX - rect.left) * scaleX;
             const mouseY = (e.clientY - rect.top) * scaleY;
 
@@ -545,6 +512,7 @@
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
+            
             const mouseX = (e.clientX - rect.left) * scaleX;
             const mouseY = (e.clientY - rect.top) * scaleY;
             
