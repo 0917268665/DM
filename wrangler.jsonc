@@ -6,7 +6,7 @@
     "enabled": true
   },
   "assets": {
-    "directory": "fenny"
+    "directory": "DM"
   },
   "compatibility_flags": [
     "nodejs_compat"
