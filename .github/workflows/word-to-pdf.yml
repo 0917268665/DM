@@ -6,6 +6,7 @@ on:
     paths:
       - 'doc/**/*.doc'
       - 'doc/**/*.docx'
+  workflow_dispatch:  # <--- 加上這一行！這代表允許「手動按按鈕觸發」
 
 jobs:
   convert_to_pdf:
