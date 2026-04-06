@@ -4,8 +4,8 @@ name: Auto Convert Word to PDF
 on:
   push:
     paths:
-      - 'doc/**/*.doc'
-      - 'doc/**/*.docx'
+      - 'docs/**/*.doc'
+      - 'docs/**/*.docx'
   workflow_dispatch:  # <--- 加上這一行！這代表允許「手動按按鈕觸發」
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
         run: |
           shopt -s globstar
           # 找尋 doc 資料夾內的所有 Word 檔案並逐一轉換
-          for file in doc/**/*.doc doc/**/*.docx; do
+          for file in docs/**/*.doc docs/**/*.docx; do
             if [ -f "$file" ]; then
               dir=$(dirname "$file")
               libreoffice --headless --convert-to pdf --outdir "$dir" "$file"
@@ -36,7 +36,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # 只把 doc 資料夾裡面新產生的 PDF 加入存檔
-          git add doc/**/*.pdf
+          # 只把 docs 資料夾裡面新產生的 PDF 加入存檔
+          git add docs/**/*.pdf
           # 如果有產生新的 PDF 才進行存檔並推播
           git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 自動轉檔：Word 轉 PDF" && git push)
