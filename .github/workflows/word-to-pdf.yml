@@ -1,0 +1,41 @@
+name: Auto Convert Word to PDF
+
+# 觸發條件：只有當 "doc" 資料夾裡面的 .doc 或 .docx 檔案有變動時，才啟動機器人
+on:
+  push:
+    paths:
+      - 'doc/**/*.doc'
+      - 'doc/**/*.docx'
+
+jobs:
+  convert_to_pdf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 允許機器人把轉好的檔案存回您的資料夾
+      
+    steps:
+      - name: 取得您的檔案 (Checkout code)
+        uses: actions/checkout@v3
+
+      - name: 安裝轉檔軟體 (LibreOffice)
+        run: sudo apt-get update && sudo apt-get install -y libreoffice
+
+      - name: 執行 Word 轉 PDF (鎖定 doc 資料夾)
+        run: |
+          shopt -s globstar
+          # 找尋 doc 資料夾內的所有 Word 檔案並逐一轉換
+          for file in doc/**/*.doc doc/**/*.docx; do
+            if [ -f "$file" ]; then
+              dir=$(dirname "$file")
+              libreoffice --headless --convert-to pdf --outdir "$dir" "$file"
+            fi
+          done
+
+      - name: 將轉好的 PDF 存回 GitHub (Commit and Push)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # 只把 doc 資料夾裡面新產生的 PDF 加入存檔
+          git add doc/**/*.pdf
+          # 如果有產生新的 PDF 才進行存檔並推播
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 自動轉檔：Word 轉 PDF" && git push)
