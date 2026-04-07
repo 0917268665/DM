@@ -17,19 +17,29 @@ jobs:
       - name: 取得您的檔案 (Checkout code)
         uses: actions/checkout@v3
 
-      - name: 安裝轉檔軟體 (LibreOffice)
-        run: sudo apt-get update && sudo apt-get install -y libreoffice
+      - name: 安裝轉檔軟體與中文字體
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice fonts-noto-cjk fonts-wqy-zenhei fonts-arphic-ukai fonts-arphic-uming
+          fc-cache -fv
 
-      - name: 執行 Word 轉 PDF (加入防卡死機制)
+      - name: 執行 Word 轉 PDF (加入智慧跳過與防卡死機制)
         run: |
           shopt -s globstar
           for file in docs/**/*.doc docs/**/*.docx; do
             if [ -f "$file" ]; then
-              echo "========================================"
-              echo "開始轉換：$file"
-              dir=$(dirname "$file")
-              # 設定 timeout 120s，每個檔案最多給 2 分鐘，超時就強制中斷
-              timeout 120s libreoffice --headless --convert-to pdf --outdir "$dir" "$file" || echo "⚠️ 轉換失敗或超時，已跳過此檔案：$file"
+              # 找出對應的 PDF 檔名
+              pdf_file="${file%.*}.pdf"
+              
+              # 判斷邏輯：如果 PDF 不存在 (! -f) 或者 Word 檔比 PDF 檔新 (-nt) 才轉檔
+              if [ ! -f "$pdf_file" ] || [ "$file" -nt "$pdf_file" ]; then
+                echo "========================================"
+                echo "🆕 發現新檔案或有更新，開始轉換：$file"
+                dir=$(dirname "$file")
+                timeout 120s libreoffice --headless --convert-to pdf --outdir "$dir" "$file" || echo "⚠️ 轉換失敗或超時，已跳過此檔案：$file"
+              else
+                echo "⏭️ 無需更新，略過：$file"
+              fi
             fi
           done
 
@@ -38,12 +48,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 【關鍵修改】直接把整個 docs 資料夾加入，不使用容易報錯的星號
           git add docs/
           
-          # 檢查是否有任何變更（是否有新的 PDF 產生），有才存檔，沒有就跳過
           if ! git diff --staged --quiet; then
-            git commit -m "🤖 自動轉檔：Word 轉 PDF"
+            git commit -m "🤖 自動轉檔：更新 PDF 檔案"
             git push
           else
             echo "✅ 沒有產生新的 PDF 或檔案無變動，無須存檔。"
