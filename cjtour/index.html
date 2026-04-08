@@ -131,7 +131,7 @@
                     <div class="col-md-8 mt-2 mt-md-0">
                         <div class="d-flex justify-content-md-end gap-2 flex-wrap">
                             <a id="m-doc" href="#" class="btn btn-outline-primary shadow-sm">
-                                📥 下載 Word
+                                📥 下載行程表
                             </a>
                             <a id="m-dm-download" href="#" target="_blank" class="btn btn-outline-danger shadow-sm">
                                 📥 下載 DM
@@ -323,9 +323,14 @@
         dmBtn.setAttribute("target", "_blank");
 
         const docBtn = document.getElementById('m-doc');
-        docBtn.href = convertToDirectLink(currentTour.doc_link, false);
+        
+        // 自動將路徑中的 .doc 或 .docx 替換成 .pdf (不分大小寫)
+        let pdfLink = currentTour.doc_link || "#";
+        pdfLink = pdfLink.replace(/\.docx?$/i, '.pdf');
+
+        docBtn.href = convertToDirectLink(pdfLink, false);
         docBtn.setAttribute("target", "_blank");
-        if(currentTour.doc_link.startsWith("./") || currentTour.doc_link.startsWith("../")) {
+        if(pdfLink.startsWith("./") || pdfLink.startsWith("../")) {
              docBtn.setAttribute("download", ""); 
         }
           
