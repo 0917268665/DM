@@ -56,20 +56,33 @@
         .modal-header { background: #2c3e50; color: white; }
         .commission-box { display: none; background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; }
         .warning-modal-header { background-color: #dc3545; color: white; }
+/* LINE 按鈕 Hover 微動態效果 */
+.hover-zoom { transition: transform 0.2s ease-in-out; display: inline-block; }
+.hover-zoom:hover { transform: scale(1.1); }
     </style>
 </head>
 <body>
 
 <header class="custom-header shadow-sm mb-3">
-
-    
     <div class="container">
-        <div class="d-flex justify-content-center align-items-center mb-2">
-            <div class="header-title">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            
+            <div class="header-title mb-3 mb-md-0">
                 ✈️ 精選DM行程下載
             </div>
+            
+            <div class="header-info d-flex align-items-center bg-white bg-opacity-25 rounded-pill px-4 py-2 shadow-sm">
+                <div class="text-white text-end me-3" style="font-size: 0.95rem;">
+                    <div class="fw-bold mb-1">業務：陳彥百 (百百)</div>
+                    <div class="font-monospace">📞 0917-268-665</div>
+                </div>
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="hover-zoom">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="38" class="bg-white rounded p-1 shadow-sm">
+                </a>
+            </div>
+
         </div>
-        </div>
+    </div>
 </header>
 
 <div class="container sticky-top bg-white shadow-sm py-2 mb-4" style="z-index: 100; border-radius: 0 0 15px 15px;">
