@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>金合歡農產海外員工旅遊<br>四國道後溫泉.小豆島5日</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "media",
+            theme: {
+                extend: {
+                    colors: {
+                        "jp-indigo": "#2B3A55",
+                        "jp-red": "#B93E38",
+                        "jp-bg": "#F5F5F0",
+                        "jp-dark": "#1a202c",
+                        "jp-card-dark": "#2d3748"
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap");
+        body { font-family: "Noto Sans TC", "Noto Sans JP", sans-serif; background-color: #F5F5F0; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .seigaiha-pattern {
+            background-color: #2B3A55;
+            background-image: radial-gradient(circle at 100% 150%, #2B3A55 24%, #364663 25%, #364663 28%, #2B3A55 29%, #2B3A55 36%, #364663 36%, #364663 40%, transparent 40%, transparent),
+            radial-gradient(circle at 0 150%, #2B3A55 24%, #364663 25%, #364663 28%, #2B3A55 29%, #2B3A55 36%, #364663 36%, #364663 40%, transparent 40%, transparent),
+            radial-gradient(circle at 50%  100%, #364663 10%, #2B3A55 11%, #2B3A55 23%, #364663 24%, #364663 30%, #2B3A55 31%, #2B3A55 43%, #364663 44%, #364663 50%, #2B3A55 51%, #2B3A55 63%, #364663 64%, #364663 71%, transparent 71%, transparent),
+            radial-gradient(circle at 100% 50%, #364663 5%, #2B3A55 6%, #2B3A55 15%, #364663 16%, #364663 20%, #2B3A55 21%, #2B3A55 30%, #364663 31%, #364663 35%, #2B3A55 36%, #2B3A55 45%, #364663 46%, #364663 49%, transparent 50%, transparent),
+            radial-gradient(circle at 0 50%, #364663 5%, #2B3A55 6%, #2B3A55 15%, #364663 16%, #364663 20%, #2B3A55 21%, #2B3A55 30%, #364663 31%, #364663 35%, #2B3A55 36%, #2B3A55 45%, #364663 46%, #364663 49%, transparent 50%, transparent);
+            background-size: 30px 15px;
+        }
+        .tab-active { color: #2B3A55; border-bottom: 3px solid #B93E38; font-weight: 700; }
+        @media (prefers-color-scheme: dark) {
+            .tab-active { color: #ffffff; border-bottom: 3px solid #F87171; }
+            .seigaiha-pattern { background-color: #1a202c; }
+        }
+        .tab-inactive { color: #A0AEC0; }
+        .weather-tag { display: inline-flex; align-items: center; font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; margin-right: 4px; border: 1px solid rgba(0,0,0,0.05); }
+        .detail-content { transition: all 0.3s ease; }
+        .rotate-180 { transform: rotate(180deg); }
+        .custom-checkbox input:checked + div { background-color: #2B3A55; border-color: #2B3A55; }
+        .custom-checkbox input:checked + div:after { content: "✓"; color: white; display: block; text-align: center; line-height: 20px; font-size: 14px; }
+        @media (prefers-color-scheme: dark) {
+             .custom-checkbox input:checked + div { background-color: #4A5568; border-color: #4A5568; }
+        }
+    </style>
+</head>
+<body class="bg-jp-bg text-gray-700 h-screen flex flex-col max-w-md mx-auto shadow-2xl relative overflow-hidden dark:bg-jp-dark dark:text-gray-200 transition-colors duration-300">
+
+    <div id="app-header" class="fixed top-0 w-full max-w-md z-50 bg-jp-bg dark:bg-jp-dark transition-colors duration-300 shadow-sm">
+        <div class="seigaiha-pattern pt-8 pb-4 px-6 text-white">
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-[10px] font-bold tracking-[0.2em] opacity-80 uppercase mb-1">行動說明會(測試中)</p>
+                    <h1 class="text-xl font-bold leading-tight">金合歡農產海外員工旅遊<br>四國道後溫泉.小豆島5日</h1>
+                    <p class="text-xs opacity-90 mt-1 font-light flex items-center gap-2">
+                        <span><i class="far fa-calendar-alt mr-1"></i> 2026/06/07 出發</span>
+                        <span class="bg-white/20 px-2 py-0.5 rounded text-[10px]">TAK05260607A</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                     <div id="location-label" class="text-[10px] opacity-70 mb-1"><i class="fas fa-map-marker-alt mr-1"></i>偵測中...</div>
+                     <div id="header-weather" class="text-2xl font-light">--<span class="text-sm">°C</span></div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex justify-around border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-jp-card-dark">
+            <button onclick="switchTab('itinerary')" id="btn-itinerary" class="flex-1 py-3 text-sm tab-active transition-all"><i class="fas fa-map-signs mr-1"></i> 行程</button>
+            <button onclick="switchTab('info')" id="btn-info" class="flex-1 py-3 text-sm tab-inactive transition-all"><i class="fas fa-info-circle mr-1"></i> 資訊</button>
+            <button onclick="switchTab('tools')" id="btn-tools" class="flex-1 py-3 text-sm tab-inactive transition-all"><i class="fas fa-suitcase mr-1"></i> 工具</button>
+        </nav>
+    </div>
+
+    <!-- Dynamic padding-top handled by JS -->
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-10 px-4" id="main-content">
+        
+        <div id="view-itinerary" class="space-y-4 pb-10">
+            
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-4 shadow-sm border-l-4 border-jp-red relative overflow-hidden card-shadow">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2"><i class="far fa-clock text-jp-red"></i> 集合資訊</h3>
+                        <div class="flex gap-4">
+                            <div>
+                                <p class="text-[10px] text-gray-400">集合時間</p>
+                                <p class="text-xl font-bold text-jp-red">06:10</p>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-[10px] text-gray-400">集合地點</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-tight font-medium whitespace-pre-wrap">台中國際機場<br>星宇航空  團體櫃台集合</p>
+                        </div>
+                         <div class="mt-2">
+                            <p class="text-[10px] text-gray-400">識別牌</p>
+                            <span class="inline-block bg-blue-600 text-white text-xs px-2 py-0.5 rounded shadow-sm">恬恬旅行社</span>
+                        </div>
+                    </div>
+                    <div class="text-right pl-2 border-l border-dashed border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center min-w-[70px]">
+                        <p class="text-[10px] text-gray-400 mb-1">導遊 曾涵羚 小姐</p>
+                        <button onclick="callGuide('0960-227-689')" class="flex flex-col items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg active:scale-95 transition-transform"><i class="fas fa-phone text-xl"></i></button>
+                        <p class="text-[10px] text-gray-500 mt-1">0960-227-689</p>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-dashed border-gray-200 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400 flex justify-between"><span>機場專員</span><span>趙黎麗 0980-664-161</span></div>
+            </div>
+
+
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl shadow-sm overflow-hidden p-5 transition-colors card-shadow">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <div>
+                            <h2 class="font-bold text-lg text-jp-indigo dark:text-blue-200">DAY 1 <span class="text-xs font-normal text-gray-400 ml-2">6/7</span></h2>
+                            <div id="weather-stats-0" class="mt-2 flex flex-wrap gap-y-2"><span class="text-xs text-gray-400">載入中...</span></div>
+                        </div>
+                        <div id="weather-icon-0" class="text-2xl text-gray-300"></div>
+                    </div>
+
+                    <div class="space-y-4 relative pl-4 border-l-2 border-gray-100 dark:border-gray-600 pb-2 pt-2">
+                        <p class="text-[10px] text-gray-400 absolute -top-2 left-2 bg-white dark:bg-jp-card-dark px-1">香川</p>
+                        
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">栗林公園</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                在園林文化遺産中，有國家指定的特別名勝。其中，栗林公園最大。它以深綠色的紫雲山爲背景，巧妙地分布著六個水池和十三座假山。作爲江戶時代初期，以有著近四百年曆史著稱的環遊式大名園林，栗林公園有著優越的地域劃分，也有點景石，同時又富有木石的雅趣。栗林公園的春夏秋冬有著不同的風光。這裏有一千顆姿態優美的松樹，景象可以說是一步一個變化，非常美麗。栗林公園經曆了漫長的歲月，被人們所喜愛，一直留存到現在，如今已經成爲不可替代的文化遺産。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">高松城跡公園</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                號稱日本三大水城之一的高松城遺址整備成的公園。瀨戶內海的海水被引入護城河，鯛魚在其中自在暢遊。園內有日本國家重要文化財產櫓（瞭望樓）和披雲閣、美麗的日本庭園等許多值得一看之處。
+                            </div>
+                        </div>
+                        
+
+                        <div class="relative cursor-pointer" onclick="showHotelCard('大江戶物語 雷歐瑪之森<br>ホテルレオマの森', '050-3615-3456', '761-2405香川県丸亀市綾歌町栗熊西40-1', 'Day 1')">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm"><i class="fas fa-bed text-purple-400 mr-1"></i> 大江戶物語 雷歐瑪之森<br>ホテルレオマの森</h3>
+                                <i class="fas fa-search-plus text-gray-300 text-xs"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 pl-5 mt-1">TEL: 050-3615-3456</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">早餐</span> <span class="flex-1">X</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">午餐</span> <span class="flex-1">機上美食</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">晚餐</span> <span class="flex-1">飯店內自助餐</span></div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl shadow-sm overflow-hidden p-5 transition-colors card-shadow">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <div>
+                            <h2 class="font-bold text-lg text-jp-indigo dark:text-blue-200">DAY 2 <span class="text-xs font-normal text-gray-400 ml-2">6/8</span></h2>
+                            <div id="weather-stats-1" class="mt-2 flex flex-wrap gap-y-2"><span class="text-xs text-gray-400">載入中...</span></div>
+                        </div>
+                        <div id="weather-icon-1" class="text-2xl text-gray-300"></div>
+                    </div>
+
+                    <div class="space-y-4 relative pl-4 border-l-2 border-gray-100 dark:border-gray-600 pb-2 pt-2">
+                        <p class="text-[10px] text-gray-400 absolute -top-2 left-2 bg-white dark:bg-jp-card-dark px-1">香川</p>
+                        
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">搭乘瀨戶內海渡輪<br>小豆島(高松港~土庄港)</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                搭乘渡輪前往小豆島。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">寒霞溪纜車</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                日本三大絕美溪谷之一的寒霞溪，是代表瀨戶內海國立公園的名勝地。
+<br>在這裡可觀賞到春季的新綠、夏季的深綠、秋季的紅葉、冬季的雪景，四季變化的表情，還可遠眺瀨戶內海。
+<br>而各式各樣的奇岩怪石也是必看的景點，這是1300萬年前火山活動而形成的岩塊，因長年累月的地殼變動及風化、侵蝕，形成地質學上別有趣味的絕景。
+<br>※寒霞溪纜車如逢天氣因素或遇維修日無法搭乘時，則改為巴士前往，並加贈橄欖冰淇淋每人一份。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">二十四瞳映畫村</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                二十四瞳電影村是以電影『二十四之瞳』背景道具改建而成，呈現大正・昭和初期的村落景象，兼具日本電影與文學氣息的主題樂園。 <br>『二十四之瞳』是部描述昭和3年至戰後翌年間的動盪時代，新任女教師與12位孩童間的師生愛小說，由小豆島出身的作家—壺井榮撰寫而成。 進入村內散發出昭和氛圍的木造校舍，令人懷舊。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">橄欖公園</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                日本小豆島盛產橄欖，電影魔女宅急便就在橄欖公園取景拍攝，成為知名景點之一。輕鬆抵達公園高點俯瞰瀨戶內海，藍天白雲襯托綠色橄欖樹與香草，並借一枝掃帚在白色大風車前跳躍拍網美照，都是很棒的體驗。離開前再購買特色橄欖製成商品，紀念這美麗的地方。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">土庄港</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                是一個位於日本香川縣高松市的港灣，管理者是香川縣。在港灣法上被列入重要港灣，在港則法上被指定為特定港。<br>以世界最窄的海峽土淵海峽聞名。其著名之動漫作品「擅長捉弄人的高木同學」於此地取景，亦帶來了觀光資源。
+                            </div>
+                        </div>
+                        
+
+                        <div class="relative cursor-pointer" onclick="showHotelCard('Dormy Inn 高松中央公園前<br>ドーミーイン 高松中央公園前', '087-835-5489', '760-0018香川県高松市天神前1番3号', 'Day 2')">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm"><i class="fas fa-bed text-purple-400 mr-1"></i> Dormy Inn 高松中央公園前<br>ドーミーイン 高松中央公園前</h3>
+                                <i class="fas fa-search-plus text-gray-300 text-xs"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 pl-5 mt-1">TEL: 087-835-5489</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">早餐</span> <span class="flex-1">飯店內</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">午餐</span> <span class="flex-1">寒霞溪風味套餐</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">晚餐</span> <span class="flex-1">日式涮涮鍋吃到飽</span></div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl shadow-sm overflow-hidden p-5 transition-colors card-shadow">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <div>
+                            <h2 class="font-bold text-lg text-jp-indigo dark:text-blue-200">DAY 3 <span class="text-xs font-normal text-gray-400 ml-2">6/9</span></h2>
+                            <div id="weather-stats-2" class="mt-2 flex flex-wrap gap-y-2"><span class="text-xs text-gray-400">載入中...</span></div>
+                        </div>
+                        <div id="weather-icon-2" class="text-2xl text-gray-300"></div>
+                    </div>
+
+                    <div class="space-y-4 relative pl-4 border-l-2 border-gray-100 dark:border-gray-600 pb-2 pt-2">
+                        <p class="text-[10px] text-gray-400 absolute -top-2 left-2 bg-white dark:bg-jp-card-dark px-1">愛媛</p>
+                        
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">祖谷溪吊橋</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                蔓藤橋是從秘境奧祖谷中長出來藤蔓編織而成的橋，為日本三大奇橋之一。據說是800年前，由當地最大勢力的平家為訓練馬匹所架設。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">大步危溪谷遊船</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                在搭乘遊船的 30 分鐘航程中，可以欣賞德島大步危峽谷的壯麗風光。<br>上船之後可以脫掉鞋子，悠閒地坐在榻榻米上順流而下，有充分的時間可以欣賞碧綠的湖水及兩岸聳立的岩壁。由大步危峽出發，順流而下可進一步體驗山谷之美，沿途溪谷岩壁交錯，可見識到德島縣天然紀念物～蝙蝠岩、獅子岩等特殊奇景。也被稱為《日本三大祕境》之一。<br>※備註: 如氣候因素無法搭乘時，成人退1,500日圓，兒童（3歲～小學生）退750日圓，敬請見諒。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">少爺列車博物館</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                自明治20年創立以來，在珍藏的資料裡，追尋著作為松山市民雙腳而一直賓士伊予鐵的歷史，是令鐵道粉絲們心潮澎湃的博物館。伊予鐵道1號機關車的模型，以原有的大小再現明治時代的樣貌映入眼簾。各時代的車廂零件及鐵軌，過去的松山街道的模型及舊照片展示，彷彿時空穿梭一般。館內相連星巴克，過往之餘來杯咖啡小憩一下吧。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">神隱少女拍攝場景</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                道後溫泉鄉，就是電影『神隱少女』中所描繪的場景，提供神怪休息的“油屋”─位於愛媛縣的 【道後溫泉本館】 。您可到溫泉商店街上逛逛，歷史悠久的老舖販賣著各種日式仙貝、手工藝品、包著香甜紅豆的小饅頭…最值得一提的就是這裡的聞名遐邇的"少爺糰子"了，這是因為出現在夏目漱石的作品『少爺』中的主人公愛不釋手的一道點心，因此日本書迷們到了這裡可是人手一串呢！晚間住宿位於愛媛縣已有3千年歷史的道後溫泉，素有「四國第一湯」名號，日本古籍中均曾提到它的功效。據說約3千年前開池，號稱日本最古老的溫泉。常被寫入小說中，因而吸引著許多文人逸士來訪。道後溫泉的泉質為弱鹼性單純溫泉，泉溫約40至50度，對神經痛、胃腸疾病及婦人病有效。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">道後溫泉街散策</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                據說約 3000 年前開池，號稱日本最古老的溫泉，與兵庫縣的有馬溫泉、和歌山縣的白浜溫泉，並列為「日本三大古湯」。。自古以來便吸引無數的文人墨客、文化氣息相當濃郁。來到四國愛媛縣，便可深刻感受這裡營造出的日本文學家夏目漱石小說《少爺》裡的意境，濃濃的文學味配上蒸汽火車、內子町老街、道後百年溫泉，讓人沉浸在濃濃的傳統日式風情裡。
+                            </div>
+                        </div>
+                        
+
+                        <div class="relative cursor-pointer" onclick="showHotelCard('奧道後 壹湯之守飯店<br>奥道後 壱湯の守', '089-977-1111', '791-0122愛媛県松山市末町乙267-1', 'Day 3')">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm"><i class="fas fa-bed text-purple-400 mr-1"></i> 奧道後 壹湯之守飯店<br>奥道後 壱湯の守</h3>
+                                <i class="fas fa-search-plus text-gray-300 text-xs"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 pl-5 mt-1">TEL: 089-977-1111</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">早餐</span> <span class="flex-1">飯店內</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">午餐</span> <span class="flex-1">日式精緻御膳</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">晚餐</span> <span class="flex-1">飯店內自助餐</span></div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl shadow-sm overflow-hidden p-5 transition-colors card-shadow">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <div>
+                            <h2 class="font-bold text-lg text-jp-indigo dark:text-blue-200">DAY 4 <span class="text-xs font-normal text-gray-400 ml-2">6/10</span></h2>
+                            <div id="weather-stats-3" class="mt-2 flex flex-wrap gap-y-2"><span class="text-xs text-gray-400">載入中...</span></div>
+                        </div>
+                        <div id="weather-icon-3" class="text-2xl text-gray-300"></div>
+                    </div>
+
+                    <div class="space-y-4 relative pl-4 border-l-2 border-gray-100 dark:border-gray-600 pb-2 pt-2">
+                        <p class="text-[10px] text-gray-400 absolute -top-2 left-2 bg-white dark:bg-jp-card-dark px-1">香川</p>
+                        
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">松山城</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                松山城位於松山市中心地帶、海拔132公尺的勝山上。山頂上建有本丸，山麓原野則有成為史蹟庭園的二之丸，以及作為堀之內公園備受喜愛的三之丸。在關原之戰活躍的加藤嘉明為初代藩主，他自慶長7年（1602年）起花費長達四分之一世紀建城，使其成為「現存十二天守」之一，城內擁有21棟重要文化財。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">烏龍學校DIY製作烏龍麵</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                香川縣是日本首屈一指的烏龍麵之鄉，在體驗活動中製作手打讚岐烏龍麵，只要跟著老師的指導教學，把麵粉揉成麵糰後，再經過踩踏麵糰、桿麵糰和切麵等步驟，就能製作出傳統的讚岐烏龍麵條。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">金刀比羅宮</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                位於香川縣西部海拔521米的象頭山山腰上。這裏因供奉著被稱爲“金毘羅”的海上守護神而聞名，它有治療疾病、消災避禍、帶來好運的神明，因此自古以來一直香火興旺。在民間信仰高漲的14世紀室町時代，“參拜金毘羅”是很盛行的一項活動，現在仍有許多人從全國各地趕來參拜。參拜道路極長，到象頭山山腰的正宮爲785級石階，到奧社是1368級，站在正宮前可以一覽讚岐平原。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">免稅店購物</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                於此可購買一些小禮品、健康食品、電器類製品，贈送給親友。
+                            </div>
+                        </div>
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">AEON永旺夢樂城</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                在日本國內外設有約200家購物商城，除巨型超市外，還可在著名的時尚品牌店、藥妝店購物，在日本的人氣餐廳、大型美食廣場享受日料和其他美味料理。
+                            </div>
+                        </div>
+                        
+
+                        <div class="relative cursor-pointer" onclick="showHotelCard('大江戶物語 雷歐瑪之森<br>ホテルレオマの森', '050-3615-3456', '761-2405 香川県丸亀市綾歌町栗熊西40-1', 'Day 4')">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm"><i class="fas fa-bed text-purple-400 mr-1"></i> 大江戶物語 雷歐瑪之森<br>ホテルレオマの森</h3>
+                                <i class="fas fa-search-plus text-gray-300 text-xs"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400 pl-5 mt-1">TEL: 050-3615-3456</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">早餐</span> <span class="flex-1">飯店內</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">午餐</span> <span class="flex-1">自製烏龍麵DIY+日式定食</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">晚餐</span> <span class="flex-1">飯店內自助餐</span></div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl shadow-sm overflow-hidden p-5 transition-colors card-shadow">
+                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+                        <div>
+                            <h2 class="font-bold text-lg text-jp-indigo dark:text-blue-200">DAY 5 <span class="text-xs font-normal text-gray-400 ml-2">6/11</span></h2>
+                            <div id="weather-stats-4" class="mt-2 flex flex-wrap gap-y-2"><span class="text-xs text-gray-400">載入中...</span></div>
+                        </div>
+                        <div id="weather-icon-4" class="text-2xl text-gray-300"></div>
+                    </div>
+
+                    <div class="space-y-4 relative pl-4 border-l-2 border-gray-100 dark:border-gray-600 pb-2 pt-2">
+                        <p class="text-[10px] text-gray-400 absolute -top-2 left-2 bg-white dark:bg-jp-card-dark px-1">高松</p>
+                        
+                        
+                        <div class="relative cursor-pointer group" onclick="toggleDetail(this)">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight">高松空港→台中清泉崗機場</h3>
+                                <i class="fas fa-chevron-down text-xs text-gray-300 transition-transform duration-300 mt-1"></i>
+                            </div>
+                            <div class="detail-content hidden mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg leading-relaxed text-justify">
+                                搭機返回溫暖的家。
+                            </div>
+                        </div>
+                        
+
+                        <div class="relative cursor-pointer" onclick="">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-600"></div>
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm"><i class="fas fa-bed text-purple-400 mr-1"></i> 溫暖的家</h3>
+                                
+                            </div>
+                            <p class="text-[10px] text-gray-400 pl-5 mt-1"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">早餐</span> <span class="flex-1">飯店內</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">午餐</span> <span class="flex-1">機上</span></div>
+                        <div class="flex"><span class="w-8 font-bold text-gray-400 text-xs pt-0.5">晚餐</span> <span class="flex-1">溫暖的家</span></div>
+                    </div>
+                </div>
+                
+
+            <div class="text-center text-xs text-gray-400 py-4 pb-20">本網頁測試中，如有勘誤請依照紙本說明會資料為準<br>祝您旅途愉快 Have a Nice Trip</div>
+        </div>
+
+        <div id="view-info" class="hidden space-y-4 pb-10">
+            <!-- 服務費卡片 (新增) -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors border-l-4 border-yellow-500">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-2"><i class="fas fa-hand-holding-usd text-yellow-500 mr-2"></i>服務費說明</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    本行程導遊司機的服務費為，每位旅客每天 <span class="font-bold text-jp-red">新台幣 300 元</span>，
+                    5 天共 <span class="font-bold text-jp-red">新台幣 1,500 元</span>，
+                    請一律在日本當地支付給導遊。
+                </p>
+            </div>
+
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3 border-l-4 border-orange-400 pl-3">航班資訊</h3>
+
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
+                    <div class="flex justify-between text-sm mb-1 text-gray-600 dark:text-gray-300">
+                        <span class="font-bold">去程 JX300</span><span>06/07</span>
+                    </div>
+                    <div class="grid grid-cols-[1fr_auto_1fr] items-center text-gray-800 dark:text-white">
+                        <div><div class="text-xl font-bold">08:40</div><div class="text-xs opacity-60">RMQ 台中</div></div>
+                        <div class="text-center"><i class="fas fa-arrow-right opacity-40"></i></div>
+                        <div class="text-right"><div class="text-xl font-bold">12:20</div><div class="text-xs opacity-60">TAK 高松</div></div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
+                    <div class="flex justify-between text-sm mb-1 text-gray-600 dark:text-gray-300">
+                        <span class="font-bold">回程 JX301</span><span>06/11</span>
+                    </div>
+                    <div class="grid grid-cols-[1fr_auto_1fr] items-center text-gray-800 dark:text-white">
+                        <div><div class="text-xl font-bold">13:20</div><div class="text-xs opacity-60">TAK 高松</div></div>
+                        <div class="text-center"><i class="fas fa-arrow-right opacity-40"></i></div>
+                        <div class="text-right"><div class="text-xl font-bold">15:15</div><div class="text-xs opacity-60">RMQ 台中</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3"><i class="fas fa-hotel text-indigo-400 mr-2"></i>住宿資訊</h3>
+                <ul class="text-sm space-y-3 dark:text-gray-300">
+
+                    <li class="flex justify-between border-b border-gray-50 dark:border-gray-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1 rounded" onclick="showHotelCard('大江戶物語 雷歐瑪之森<br>ホテルレオマの森', '050-3615-3456', '761-2405香川県丸亀市綾歌町栗熊西40-1', 'Day 1')">
+                        <span class="text-jp-indigo dark:text-indigo-300 font-bold">Day 1 <i class="fas fa-search-plus text-xs ml-1 opacity-50"></i></span>
+                        <span class="font-medium text-right">大江戶物語 雷歐瑪之森<br>ホテルレオマの森<br><span class="text-xs text-gray-400">050-3615-3456</span></span>
+                    </li>
+                    <li class="flex justify-between border-b border-gray-50 dark:border-gray-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1 rounded" onclick="showHotelCard('Dormy Inn 高松中央公園前<br>ドーミーイン 高松中央公園前', '087-835-5489', '760-0018香川県高松市天神前1番3号', 'Day 2')">
+                        <span class="text-jp-indigo dark:text-indigo-300 font-bold">Day 2 <i class="fas fa-search-plus text-xs ml-1 opacity-50"></i></span>
+                        <span class="font-medium text-right">Dormy Inn 高松中央公園前<br>ドーミーイン 高松中央公園前<br><span class="text-xs text-gray-400">087-835-5489</span></span>
+                    </li>
+                    <li class="flex justify-between border-b border-gray-50 dark:border-gray-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1 rounded" onclick="showHotelCard('奧道後 壹湯之守飯店<br>奥道後 壱湯の守', '089-977-1111', '791-0122愛媛県松山市末町乙267-1', 'Day 3')">
+                        <span class="text-jp-indigo dark:text-indigo-300 font-bold">Day 3 <i class="fas fa-search-plus text-xs ml-1 opacity-50"></i></span>
+                        <span class="font-medium text-right">奧道後 壹湯之守飯店<br>奥道後 壱湯の守<br><span class="text-xs text-gray-400">089-977-1111</span></span>
+                    </li>
+                    <li class="flex justify-between border-b border-gray-50 dark:border-gray-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1 rounded" onclick="showHotelCard('大江戶物語 雷歐瑪之森<br>ホテルレオマの森', '050-3615-3456', '761-2405 香川県丸亀市綾歌町栗熊西40-1', 'Day 4')">
+                        <span class="text-jp-indigo dark:text-indigo-300 font-bold">Day 4 <i class="fas fa-search-plus text-xs ml-1 opacity-50"></i></span>
+                        <span class="font-medium text-right">大江戶物語 雷歐瑪之森<br>ホテルレオマの森<br><span class="text-xs text-gray-400">050-3615-3456</span></span>
+                    </li>
+                    <li class="flex justify-between border-b border-gray-50 dark:border-gray-700 pb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1 rounded" onclick="">
+                        <span class="text-jp-indigo dark:text-indigo-300 font-bold">Day 5 </span>
+                        <span class="font-medium text-right">溫暖的家<br><span class="text-xs text-gray-400"></span></span>
+                    </li>
+                </ul>
+<p class="text-[10px] text-gray-400 mt-2 text-right">* 點擊飯店可顯示給司機看的卡片</p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl">
+                    <i class="fas fa-clock text-purple-500 text-xl mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200">時差</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">日本與台灣時差一小時，日本比台灣快一小時（例如：台灣時間早上 9 點，日本為早上 10 點）。</p>
+                </div>
+                <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl">
+                    <i class="fas fa-sun text-orange-500 text-xl mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200">天氣穿著</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">6月四國氣溫約為19至28度，天氣舒適，請攜帶雨具備用！夜晚與車上可能微涼，可攜帶薄外套。</p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl">
+                    <i class="fas fa-money-bill-wave text-green-500 text-xl mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200">貨幣匯率</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">請在台灣換好日幣，目前匯率約1:5左右。大部分商家也可使用信用卡或suica等交通卡支付。</p>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl">
+                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 mb-1"><i class="fas fa-suitcase text-blue-500 mr-2"></i>行李與須知</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">嚴禁攜帶肉類入境。行動電源請隨身攜帶。每人托運行李1件23公斤，手提行李一件7公斤。<br><br>泡麵可以帶回台灣嗎？<br>
+泡麵方面，基本上「沖泡即食」類型的泡麵、泡飯、速食米粉、速食粥等產品，均屬於免施檢疫範圍，旅客可以安心購買。<br>但如果是附有肉類零食的泡麵組合，例如火腿腸、鳳爪等等，就不能攜帶回來。<br><br>防檢署提醒，泡麵這類產品樣態種類多且不斷推陳出新，旅客如果有任何疑慮，可以直接到「動植物檢疫」櫃檯洽詢，由現場的檢疫人員確認檢查。即使經檢查發現產品無法攜帶入境，只要旅客主動申報並配合相關處理程序，就不會遭受處罰。<br><br>
+５種台灣禁止入境食物<br>
+防檢署明確指出幾類絕對禁止攜帶的產品：<br>
+１. 溏心蛋、溫泉蛋等未完全煮熟的蛋類製品<br>
+２. 各種生鮮水果，包含飛機餐提供的水果<br>
+３. 雞肉蛋白棒<br>
+４. 雞皮零食<br>
+５. 含有肉類的三明治、飯糰、麵包等產品<br><br>
+🔥防檢署Line官方帳號🔥<a href="https://lin.ee/53trW2m">https://lin.ee/53trW2m(點擊開啟)</a><br>
+只要在聊天室輸入『物品名稱』，系統就會告訴你檢疫規定！</p>
+                </div>
+            </div>
+
+
+                <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors mt-4">
+                    <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3"><i class="fas fa-images text-pink-500 mr-2"></i>注意事項</h3>
+                    <div class="grid grid-cols-1 gap-2">
+                        <img src="../1.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../2.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../JP.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../4.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../5.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../6.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm"><img src="../7.jpg" onerror="this.style.display='none'" class="w-full h-auto object-contain rounded-lg shadow-sm">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2 text-center">* 請詳閱以上注意事項</p>
+                </div>
+
+
+                <a href="./0607TAK手冊.pdf" target="_blank" class="block w-full bg-gray-800 hover:bg-gray-700 text-white text-center py-3 rounded-xl font-bold mt-6 shadow-md transition">
+                    <i class="fas fa-file-pdf mr-2"></i> 下載紙本說明會資料
+                </a>
+
+                <a href="https://img.newamazing.com.tw/eweb/feedback/index.asp?grup_cd=TAK05260607A&openExternalBrowser=1" target="_blank" class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-center py-3 rounded-xl font-bold mt-6 shadow-md transition">
+                    <i class="fas fa-smile mr-2"></i> 填寫客戶滿意度調查
+                </a>
+            <div class="text-center text-xs text-gray-400 py-4 pb-20">本網頁測試中，如有勘誤請依照紙本說明會資料為準<br>祝您旅途愉快 Have a Nice Trip</div>
+        </div>
+
+        <div id="view-tools" class="hidden space-y-6 pb-10">
+            
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3"><i class="fas fa-tasks text-teal-500 mr-2"></i>旅人檢查清單</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-2 font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 px-2 py-1 rounded inline-block">重要文件</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_doc_passport" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">護照 (檢查效期)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_doc_money" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">日幣</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_doc_vjw" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">信用卡</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_doc_ticket" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">個人旅遊保險</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-2 font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-1 rounded inline-block">3C 產品</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_3c_phone" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">網卡/漫遊</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_3c_charge" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">充電器/充電線</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_3c_bank" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">行動電源</span>
+                            </label>
+                        </div>
+                        <div class="mt-2 text-[10px] text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400 p-2 rounded">
+                            ⚡ 日本電壓為 100V，請確認您的電器(如吹風機)是否支援！
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-2 font-bold uppercase tracking-wider bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300 px-2 py-1 rounded inline-block">個人 / 盥洗 / 藥品</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_item_rain" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">雨具/摺疊傘</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_item_coat" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">外套/保暖衣物</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_item_wash" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">牙刷/洗面乳</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer custom-checkbox">
+                                <input type="checkbox" id="check_item_meds" class="hidden" onchange="saveCheck(this.id)">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">個人常備藥</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 mb-2 font-bold uppercase tracking-wider">每日退房檢查 (防止遺落)</p>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-3 cursor-pointer custom-checkbox">
+                            <input type="checkbox" id="daily_charger" class="hidden" onchange="saveCheck(this.id)">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                            <span class="text-sm text-gray-600 dark:text-gray-300">充電器 / 轉接頭 / 行動電源</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer custom-checkbox">
+                            <input type="checkbox" id="daily_wash" class="hidden" onchange="saveCheck(this.id)">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                            <span class="text-sm text-gray-600 dark:text-gray-300">盥洗包 / 眼鏡 / 隱眼</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer custom-checkbox">
+                            <input type="checkbox" id="daily_wifi" class="hidden" onchange="saveCheck(this.id)">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                            <span class="text-sm text-gray-600 dark:text-gray-300">護照 / 隨身貴重物品</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer custom-checkbox">
+                            <input type="checkbox" id="daily_key" class="hidden" onchange="saveCheck(this.id)">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-colors"></div>
+                            <span class="text-sm text-gray-600 dark:text-gray-300">房卡已歸還</span>
+                        </label>
+                    </div>
+                    <button onclick="resetDailyChecks()" class="mt-3 text-xs text-blue-400 underline w-full text-right">重置每日檢查</button>
+                </div>
+            </div>
+
+            <!-- B. 手指日語 -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3">
+                    <i class="fas fa-language text-green-500 mr-2"></i>手指日語
+                </h3>
+                
+                <p class="text-xs text-gray-400 mb-2 mt-1 font-bold">基礎會話</p>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="speakJp('すみません', '蘇咪媽森')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">不好意思 / 請問</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Sumimasen</div>
+                    </button>
+                    <button onclick="speakJp('トイレはどこですか', '透以雷哇 多口爹思嘎')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">廁所在哪裡</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Toire wa?</div>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-400 mb-2 font-bold">🛍️ 購物結帳</p>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="speakJp('別々に包んでください', '貝茲貝茲 妮 此寸爹 哭搭賽')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">請幫我分開包裝</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200 text-sm">Betsu-betsu ni...</div>
+                    </button>
+                    <button onclick="speakJp('免税になりますか', '麵賊 妮 拿哩媽思嘎')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">可以免稅嗎?</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Tax Free?</div>
+                    </button>
+                    <button onclick="speakJp('袋は要りません', '福哭摟 哇 以哩媽森')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">不用袋子</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">No Bag</div>
+                    </button>
+                    <button onclick="speakJp('新しいのはありますか', '阿他拉系 諾哇 阿哩媽思嘎')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">有新的嗎?</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">New one?</div>
+                    </button>
+                    <button onclick="speakJp('これをください', '口雷喔 哭搭賽')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">我要這個</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Kore o kudasai</div>
+                    </button>
+                    <button onclick="speakJp('カードは使えますか', '卡多 哇 此凱媽思嘎')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">可以刷卡嗎?</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Card OK?</div>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-400 mb-2 font-bold">🍽️ 餐廳用餐</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="speakJp('メニューをください', '妹紐 喔 哭搭賽')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">請給我菜單</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Menu Please</div>
+                    </button>
+                    <button onclick="speakJp('お水をください', '歐咪茲 喔 哭搭賽')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">請給我水</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Water Please</div>
+                    </button>
+                    <button onclick="speakJp('おすすめは？', '歐蘇蘇妹 哇')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">有推薦的嗎?</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Recommend?</div>
+                    </button>
+                    <button onclick="speakJp('お会計をお願いします', '歐凱K 喔餒該依希媽思')" class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-left active:bg-gray-200 dark:active:bg-gray-600 transition">
+                        <div class="text-xs text-gray-400">麻煩結帳</div>
+                        <div class="font-bold text-jp-indigo dark:text-blue-200">Check Bill</div>
+                    </button>
+                </div>
+
+                <div id="speak-status" class="text-center text-xs text-gray-400 mt-2 h-4"></div>
+            </div>
+
+            <!-- D. 緊急聯絡 -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-4"><i class="fas fa-exclamation-circle text-jp-red mr-2"></i>緊急聯絡 & 支援</h3>
+                
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <a href="tel:110" class="border border-gray-200 dark:border-gray-600 rounded-xl p-3 text-center active:bg-gray-50 dark:active:bg-gray-700">
+                        <div class="text-xs text-gray-400 mb-1">警察 (POLICE)</div>
+                        <div class="text-3xl font-bold text-jp-red">110</div>
+                    </a>
+                    <a href="tel:119" class="border border-gray-200 dark:border-gray-600 rounded-xl p-3 text-center active:bg-gray-50 dark:active:bg-gray-700">
+                        <div class="text-xs text-gray-400 mb-1">救護/火警</div>
+                        <div class="text-3xl font-bold text-jp-red">119</div>
+                    </a>
+                </div>
+
+                <a href="tel:05038162787" class="block border border-gray-200 dark:border-gray-600 rounded-xl p-4 mb-4 active:bg-gray-50 dark:active:bg-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-gray-800 dark:text-gray-200">訪日外國人<br>醫療 & 急難熱線</div>
+                            <div class="text-[10px] text-gray-400 uppercase">Japan Visitor Hotline (JNTO)</div>
+                            <div class="text-2xl font-bold text-gray-700 dark:text-gray-300 mt-1">050-3816-2787</div>
+                        </div>
+                        <div class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-gray-400 mt-2">* 24小時對應 (英/中/韓)</div>
+                </a>
+
+                <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <p class="text-xs text-gray-400 font-bold">團體專屬聯絡人</p>
+                    <div onclick="callGuide('0960-227-689')" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer">
+                                        <div><p class="font-bold text-sm dark:text-gray-200">導遊 曾涵羚 小姐</p><p class="text-xs text-gray-400">0960-227-689</p></div>
+                                        <div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><i class="fas fa-phone"></i></div>
+                                    </div>
+                    <a href="tel:0980-664-161" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                        <div><p class="font-bold text-sm dark:text-gray-200">機場專員</p><p class="text-xs text-gray-400">趙黎麗 0980-664-161</p></div>
+                                        <div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><i class="fas fa-phone"></i></div>
+                                    </a>
+                    <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900">
+                        <p class="text-xs text-jp-red dark:text-red-400 font-bold mb-1">外交部 東京駐日代表處</p>
+                        <a href="tel:+81332807917" class="block text-sm text-gray-700 dark:text-gray-300 mb-1">03-3280-7917 (上班時間)</a>
+                        <a href="tel:+818010097179" class="block text-sm font-bold text-red-600">080-1009-7179 (急難救助)</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- F. 匯率換算 -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 mb-3"><i class="fas fa-coins text-yellow-500 mr-2"></i>即時匯率換算</h3>
+                <div class="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                    <div class="flex-1"><label class="text-xs text-gray-400 block mb-1">日幣 (JPY)</label><input type="number" id="calc-jpy" placeholder="輸入" class="w-full bg-transparent text-xl font-bold text-gray-700 dark:text-white outline-none" oninput="convertCurrency()"></div>
+                    <i class="fas fa-arrow-right text-gray-300"></i>
+                    <div class="flex-1 text-right"><label class="text-xs text-gray-400 block mb-1">台幣 (TWD)</label><div id="calc-twd" class="text-xl font-bold text-blue-500">0</div></div>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-2 text-right">匯率參考: 1 JPY ≈ <span id="calc-rate-display">...</span> TWD</p>
+            </div>
+
+            <!-- G. 免稅湊單 -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-gray-800 dark:text-gray-100"><i class="fas fa-calculator text-pink-500 mr-2"></i>免稅湊單計算機</h3>
+                    <button onclick="resetBatch()" class="text-xs text-red-400 underline">重置</button>
+                </div>
+                <div class="bg-pink-50 dark:bg-pink-900/10 p-4 rounded-xl border border-pink-100 dark:border-pink-900/30">
+                    <div class="mb-3">
+                         <input type="text" id="batch-store-name" placeholder="商店名稱 (例: 松本清)" class="w-full bg-white dark:bg-gray-700 dark:text-white border border-pink-200 dark:border-gray-600 rounded-lg text-sm px-3 py-2 outline-none mb-2 transition-opacity">
+                         <div class="flex gap-1">
+                             <input type="text" id="batch-item-name" placeholder="品項" class="flex-[2] min-w-0 bg-white dark:bg-gray-700 dark:text-white border border-pink-200 dark:border-gray-600 rounded-lg text-sm px-2 py-2 outline-none">
+                             <input type="number" id="batch-item-qty" placeholder="x1" class="w-12 bg-white dark:bg-gray-700 dark:text-white border border-pink-200 dark:border-gray-600 rounded-lg text-sm px-1 py-2 outline-none text-center">
+                             <input type="number" id="batch-item-price" placeholder="¥單價" class="w-20 bg-white dark:bg-gray-700 dark:text-white border border-pink-200 dark:border-gray-600 rounded-lg text-sm px-2 py-2 outline-none">
+                             <button onclick="addBatchItem()" class="bg-pink-500 text-white rounded-lg px-3 py-2"><i class="fas fa-plus"></i></button>
+                         </div>
+                    </div>
+                    
+                    <ul id="batch-list" class="space-y-1 text-xs text-gray-600 dark:text-gray-400 mb-3 max-h-24 overflow-y-auto"></ul>
+
+                    <div class="border-t border-pink-200 dark:border-pink-900/30 pt-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500 dark:text-gray-400">目前總計</span>
+                            <span id="batch-total-display" class="font-bold text-gray-800 dark:text-white">¥0</span>
+                        </div>
+                        <div class="flex justify-between text-xs mb-2">
+                             <span id="batch-status-text" class="text-jp-red font-bold">還差 ¥5,500</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-600 mb-3">
+                            <div id="batch-progress" class="bg-jp-red h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <button onclick="saveBatchToMain()" class="w-full bg-jp-indigo hover:bg-blue-800 text-white text-xs py-2 rounded-lg transition shadow-sm">
+                            <i class="fas fa-save mr-1"></i> 結算並儲存至購物紀錄
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- H. 購物記帳 -->
+            <div class="bg-white dark:bg-jp-card-dark rounded-xl p-5 card-shadow transition-colors">
+                <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-gray-800 dark:text-gray-100"><i class="fas fa-shopping-bag text-yellow-400 mr-2"></i>購物記帳 (總表)</h3><button onclick="resetBudget()" class="text-xs text-red-400 underline">重置</button></div>
+                
+                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl mb-4 text-center">
+                    <p class="text-xs text-gray-400">總花費 (JPY)</p><p class="text-3xl font-bold text-gray-800 dark:text-white" id="total-amount">¥0</p>
+                    <p class="text-xs text-gray-400 mt-1">約台幣 NT$ <span id="twd-amount">0</span></p>
+                </div>
+
+                <div class="flex gap-1 mb-4">
+                    <input type="text" id="item-name" placeholder="單筆品項" class="flex-[2] min-w-0 bg-gray-100 dark:bg-gray-700 dark:text-white border-none rounded-lg text-sm px-2 py-2 outline-none">
+                    <input type="number" id="item-qty" placeholder="x1" class="w-12 bg-gray-100 dark:bg-gray-700 dark:text-white border-none rounded-lg text-sm px-1 py-2 outline-none text-center">
+                    <input type="number" id="item-price" placeholder="¥單價" class="w-20 bg-gray-100 dark:bg-gray-700 dark:text-white border-none rounded-lg text-sm px-2 py-2 outline-none">
+                    <button onclick="addItem()" class="bg-blue-500 text-white rounded-lg px-3 py-2"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="budget-list" class="space-y-2 text-sm max-h-40 overflow-y-auto dark:text-gray-300"></ul>
+            </div>
+            <div class="text-center text-xs text-gray-400 py-4 pb-20">本網頁測試中，如有勘誤請依照紙本說明會資料為準<br>祝您旅途愉快 Have a Nice Trip</div>
+        </div>
+
+    </main>
+
+    <!-- Modal for Hotel Card -->
+    <div id="hotel-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeHotelCard()">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl relative" onclick="event.stopPropagation()">
+            <button onclick="closeHotelCard()" class="absolute top-4 right-4 text-gray-400 text-2xl">&times;</button>
+            <p class="text-xs text-gray-400 mb-2 uppercase tracking-widest">Driver Card</p>
+            <div class="border-2 border-jp-indigo p-4 rounded-xl">
+                <p class="text-sm text-gray-500 mb-1">此方までお願いします</p>
+                <h2 class="text-xl font-black text-jp-indigo mb-4 leading-relaxed" id="modal-hotel-name"></h2>
+                <hr class="border-dashed border-gray-300 my-3">
+                <p class="text-left text-sm font-bold text-gray-700"><span id="modal-hotel-addr"></span></p>
+                <p class="text-left text-xs text-gray-400 mt-1">TEL: <span id="modal-hotel-tel"></span></p>
+            </div>
+            <p class="text-xs text-gray-400 mt-4">(點擊背景關閉)</p>
+        </div>
+    </div>
+
+    <script>
+        // Data Injection
+        const TRIP_DATA = {"tripName":"金合歡農產海外員工旅遊<br>四國道後溫泉.小豆島5日","tripCode":"TAK05260607A","dateRange":"2026/02/13","meeting":{"date":"2026/06/07","time":"06:10","location":"台中國際機場<br>星宇航空  團體櫃台集合","badge":"恬恬旅行社","airportStaff":"趙黎麗 0980-664-161"},"guide":{"name":"曾涵羚 小姐","twPhone":"0960-227-689","localPhone":"080-3975-5756"},"flights":[{"type":"去程","airline":"星宇航空","code":"JX300","date":"06/07","depTime":"08:40","depAirport":"RMQ 台中","arrTime":"12:20","arrAirport":"TAK 高松"},{"type":"回程","airline":"星宇航空","code":"JX301","date":"06/11","depTime":"13:20","depAirport":"TAK 高松","arrTime":"15:15","arrAirport":"RMQ 台中"}],"days":[{"day":1,"date":"6/7","location":"香川","lat":34.85,"lon":136.81,"spots":[{"name":"栗林公園","desc":"在園林文化遺産中，有國家指定的特別名勝。其中，栗林公園最大。它以深綠色的紫雲山爲背景，巧妙地分布著六個水池和十三座假山。作爲江戶時代初期，以有著近四百年曆史著稱的環遊式大名園林，栗林公園有著優越的地域劃分，也有點景石，同時又富有木石的雅趣。栗林公園的春夏秋冬有著不同的風光。這裏有一千顆姿態優美的松樹，景象可以說是一步一個變化，非常美麗。栗林公園經曆了漫長的歲月，被人們所喜愛，一直留存到現在，如今已經成爲不可替代的文化遺産。"},{"name":"高松城跡公園","desc":"號稱日本三大水城之一的高松城遺址整備成的公園。瀨戶內海的海水被引入護城河，鯛魚在其中自在暢遊。園內有日本國家重要文化財產櫓（瞭望樓）和披雲閣、美麗的日本庭園等許多值得一看之處。"}],"meals":{"b":"X","l":"機上美食","d":"飯店內自助餐"},"hotel":"大江戶物語 雷歐瑪之森<br>ホテルレオマの森","hotelTel":"050-3615-3456","hotelAddress":"761-2405香川県丸亀市綾歌町栗熊西40-1"},{"day":2,"date":"6/8","location":"香川","lat":25.03,"lon":121.56,"spots":[{"name":"搭乘瀨戶內海渡輪<br>小豆島(高松港~土庄港)","desc":"搭乘渡輪前往小豆島。"},{"name":"寒霞溪纜車","desc":"日本三大絕美溪谷之一的寒霞溪，是代表瀨戶內海國立公園的名勝地。\n<br>在這裡可觀賞到春季的新綠、夏季的深綠、秋季的紅葉、冬季的雪景，四季變化的表情，還可遠眺瀨戶內海。\n<br>而各式各樣的奇岩怪石也是必看的景點，這是1300萬年前火山活動而形成的岩塊，因長年累月的地殼變動及風化、侵蝕，形成地質學上別有趣味的絕景。\n<br>※寒霞溪纜車如逢天氣因素或遇維修日無法搭乘時，則改為巴士前往，並加贈橄欖冰淇淋每人一份。"},{"name":"二十四瞳映畫村","desc":"二十四瞳電影村是以電影『二十四之瞳』背景道具改建而成，呈現大正・昭和初期的村落景象，兼具日本電影與文學氣息的主題樂園。 <br>『二十四之瞳』是部描述昭和3年至戰後翌年間的動盪時代，新任女教師與12位孩童間的師生愛小說，由小豆島出身的作家—壺井榮撰寫而成。 進入村內散發出昭和氛圍的木造校舍，令人懷舊。"},{"name":"橄欖公園","desc":"日本小豆島盛產橄欖，電影魔女宅急便就在橄欖公園取景拍攝，成為知名景點之一。輕鬆抵達公園高點俯瞰瀨戶內海，藍天白雲襯托綠色橄欖樹與香草，並借一枝掃帚在白色大風車前跳躍拍網美照，都是很棒的體驗。離開前再購買特色橄欖製成商品，紀念這美麗的地方。"},{"name":"土庄港","desc":"是一個位於日本香川縣高松市的港灣，管理者是香川縣。在港灣法上被列入重要港灣，在港則法上被指定為特定港。<br>以世界最窄的海峽土淵海峽聞名。其著名之動漫作品「擅長捉弄人的高木同學」於此地取景，亦帶來了觀光資源。"}],"meals":{"b":"飯店內","l":"寒霞溪風味套餐","d":"日式涮涮鍋吃到飽"},"hotel":"Dormy Inn 高松中央公園前<br>ドーミーイン 高松中央公園前","hotelTel":"087-835-5489","hotelAddress":"760-0018香川県高松市天神前1番3号"},{"day":3,"date":"6/9","location":"愛媛","lat":25.03,"lon":121.56,"spots":[{"name":"祖谷溪吊橋","desc":"蔓藤橋是從秘境奧祖谷中長出來藤蔓編織而成的橋，為日本三大奇橋之一。據說是800年前，由當地最大勢力的平家為訓練馬匹所架設。"},{"name":"大步危溪谷遊船","desc":"在搭乘遊船的 30 分鐘航程中，可以欣賞德島大步危峽谷的壯麗風光。<br>上船之後可以脫掉鞋子，悠閒地坐在榻榻米上順流而下，有充分的時間可以欣賞碧綠的湖水及兩岸聳立的岩壁。由大步危峽出發，順流而下可進一步體驗山谷之美，沿途溪谷岩壁交錯，可見識到德島縣天然紀念物～蝙蝠岩、獅子岩等特殊奇景。也被稱為《日本三大祕境》之一。<br>※備註: 如氣候因素無法搭乘時，成人退1,500日圓，兒童（3歲～小學生）退750日圓，敬請見諒。"},{"name":"少爺列車博物館","desc":"自明治20年創立以來，在珍藏的資料裡，追尋著作為松山市民雙腳而一直賓士伊予鐵的歷史，是令鐵道粉絲們心潮澎湃的博物館。伊予鐵道1號機關車的模型，以原有的大小再現明治時代的樣貌映入眼簾。各時代的車廂零件及鐵軌，過去的松山街道的模型及舊照片展示，彷彿時空穿梭一般。館內相連星巴克，過往之餘來杯咖啡小憩一下吧。"},{"name":"神隱少女拍攝場景","desc":"道後溫泉鄉，就是電影『神隱少女』中所描繪的場景，提供神怪休息的“油屋”─位於愛媛縣的 【道後溫泉本館】 。您可到溫泉商店街上逛逛，歷史悠久的老舖販賣著各種日式仙貝、手工藝品、包著香甜紅豆的小饅頭…最值得一提的就是這裡的聞名遐邇的\"少爺糰子\"了，這是因為出現在夏目漱石的作品『少爺』中的主人公愛不釋手的一道點心，因此日本書迷們到了這裡可是人手一串呢！晚間住宿位於愛媛縣已有3千年歷史的道後溫泉，素有「四國第一湯」名號，日本古籍中均曾提到它的功效。據說約3千年前開池，號稱日本最古老的溫泉。常被寫入小說中，因而吸引著許多文人逸士來訪。道後溫泉的泉質為弱鹼性單純溫泉，泉溫約40至50度，對神經痛、胃腸疾病及婦人病有效。"},{"name":"道後溫泉街散策","desc":"據說約 3000 年前開池，號稱日本最古老的溫泉，與兵庫縣的有馬溫泉、和歌山縣的白浜溫泉，並列為「日本三大古湯」。。自古以來便吸引無數的文人墨客、文化氣息相當濃郁。來到四國愛媛縣，便可深刻感受這裡營造出的日本文學家夏目漱石小說《少爺》裡的意境，濃濃的文學味配上蒸汽火車、內子町老街、道後百年溫泉，讓人沉浸在濃濃的傳統日式風情裡。"}],"meals":{"b":"飯店內","l":"日式精緻御膳","d":"飯店內自助餐"},"hotel":"奧道後 壹湯之守飯店<br>奥道後 壱湯の守","hotelTel":"089-977-1111","hotelAddress":"791-0122愛媛県松山市末町乙267-1"},{"day":4,"date":"6/10","location":"香川","lat":25.03,"lon":121.56,"spots":[{"name":"松山城","desc":"松山城位於松山市中心地帶、海拔132公尺的勝山上。山頂上建有本丸，山麓原野則有成為史蹟庭園的二之丸，以及作為堀之內公園備受喜愛的三之丸。在關原之戰活躍的加藤嘉明為初代藩主，他自慶長7年（1602年）起花費長達四分之一世紀建城，使其成為「現存十二天守」之一，城內擁有21棟重要文化財。"},{"name":"烏龍學校DIY製作烏龍麵","desc":"香川縣是日本首屈一指的烏龍麵之鄉，在體驗活動中製作手打讚岐烏龍麵，只要跟著老師的指導教學，把麵粉揉成麵糰後，再經過踩踏麵糰、桿麵糰和切麵等步驟，就能製作出傳統的讚岐烏龍麵條。"},{"name":"金刀比羅宮","desc":"位於香川縣西部海拔521米的象頭山山腰上。這裏因供奉著被稱爲“金毘羅”的海上守護神而聞名，它有治療疾病、消災避禍、帶來好運的神明，因此自古以來一直香火興旺。在民間信仰高漲的14世紀室町時代，“參拜金毘羅”是很盛行的一項活動，現在仍有許多人從全國各地趕來參拜。參拜道路極長，到象頭山山腰的正宮爲785級石階，到奧社是1368級，站在正宮前可以一覽讚岐平原。"},{"name":"免稅店購物","desc":"於此可購買一些小禮品、健康食品、電器類製品，贈送給親友。"},{"name":"AEON永旺夢樂城","desc":"在日本國內外設有約200家購物商城，除巨型超市外，還可在著名的時尚品牌店、藥妝店購物，在日本的人氣餐廳、大型美食廣場享受日料和其他美味料理。"}],"meals":{"b":"飯店內","l":"自製烏龍麵DIY+日式定食","d":"飯店內自助餐"},"hotel":"大江戶物語 雷歐瑪之森<br>ホテルレオマの森","hotelTel":"050-3615-3456","hotelAddress":"761-2405 香川県丸亀市綾歌町栗熊西40-1"},{"day":5,"date":"6/11","location":"高松","lat":25.03,"lon":121.56,"spots":[{"name":"高松空港→台中清泉崗機場","desc":"搭機返回溫暖的家。"}],"meals":{"b":"飯店內","l":"機上","d":"溫暖的家"},"hotel":"溫暖的家","hotelTel":"","hotelAddress":""}],"info":{"weather":"6月四國氣溫約為19至28度，天氣舒適，請攜帶雨具備用！夜晚與車上可能微涼，可攜帶薄外套。","currency":"請在台灣換好日幣，目前匯率約1:5左右。大部分商家也可使用信用卡或suica等交通卡支付。","voltage":"100V 雙孔扁插 (與台灣相同，免轉接頭)。","baggage":"嚴禁攜帶肉類入境。行動電源請隨身攜帶。每人托運行李1件23公斤，手提行李一件7公斤。<br><br>泡麵可以帶回台灣嗎？<br>\n泡麵方面，基本上「沖泡即食」類型的泡麵、泡飯、速食米粉、速食粥等產品，均屬於免施檢疫範圍，旅客可以安心購買。<br>但如果是附有肉類零食的泡麵組合，例如火腿腸、鳳爪等等，就不能攜帶回來。<br><br>防檢署提醒，泡麵這類產品樣態種類多且不斷推陳出新，旅客如果有任何疑慮，可以直接到「動植物檢疫」櫃檯洽詢，由現場的檢疫人員確認檢查。即使經檢查發現產品無法攜帶入境，只要旅客主動申報並配合相關處理程序，就不會遭受處罰。<br><br>\n５種台灣禁止入境食物<br>\n防檢署明確指出幾類絕對禁止攜帶的產品：<br>\n１. 溏心蛋、溫泉蛋等未完全煮熟的蛋類製品<br>\n２. 各種生鮮水果，包含飛機餐提供的水果<br>\n３. 雞肉蛋白棒<br>\n４. 雞皮零食<br>\n５. 含有肉類的三明治、飯糰、麵包等產品<br><br>\n🔥防檢署Line官方帳號🔥<a href=\"https://lin.ee/53trW2m\">https://lin.ee/53trW2m(點擊開啟)</a><br>\n只要在聊天室輸入『物品名稱』，系統就會告訴你檢疫規定！","imageRoot":"../1.jpg\n../2.jpg\n../JP.jpg\n../4.jpg\n../5.jpg\n../6.jpg\n../7.jpg","pdfPath":"./0607TAK手冊.pdf","surveyUrl":"https://img.newamazing.com.tw/eweb/feedback/index.asp?grup_cd=TAK05260607A&openExternalBrowser=1","tips":{"perDay":300,"days":5,"currency":"新台幣"}}};
+
+        // --- UI Switching ---
+        function switchTab(tabName) {
+            ['itinerary', 'info', 'tools'].forEach(t => {
+                document.getElementById('view-'+t).classList.add('hidden');
+                document.getElementById('btn-'+t).className = 'flex-1 py-3 text-sm tab-inactive transition-all';
+            });
+            document.getElementById('view-'+tabName).classList.remove('hidden');
+            document.getElementById('btn-'+tabName).className = 'flex-1 py-3 text-sm tab-active transition-all';
+            document.getElementById('main-content').scrollTop = 0;
+        }
+
+        // Toggle Spot Detail
+        function toggleDetail(el) {
+            const content = el.querySelector('.detail-content');
+            const icon = el.querySelector('.fa-chevron-down');
+            if (content) {
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    if(icon) icon.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    if(icon) icon.classList.remove('rotate-180');
+                }
+            }
+        }
+
+        // --- Hotel Modal ---
+        function showHotelCard(name, tel, addr, dayLabel) {
+             if(!addr) return; // double check logic
+             document.getElementById('modal-hotel-name').innerHTML = name.replace(/飯店/g, '') + '<br><span class="text-sm font-normal text-gray-500">(' + dayLabel + ')</span>';
+             document.getElementById('modal-hotel-tel').innerText = tel;
+             document.getElementById('modal-hotel-addr').innerText = addr;
+             document.getElementById('hotel-modal').classList.remove('hidden');
+        }
+        function closeHotelCard() { document.getElementById('hotel-modal').classList.add('hidden'); }
+
+        // --- Weather Logic ---
+        // Global resize observer variable
+        let headerResizeObserver = null;
+
+        async function fetchWeather() {
+            try {
+                // Initialize dynamic padding logic when weather starts fetching
+                initDynamicPadding();
+
+                // Geolocation logic is independent
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (p) => {
+                             try {
+                                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}&current=temperature_2m&timezone=Asia%2FTokyo`);
+                                 const d = await res.json();
+                                 if(d.current) document.getElementById('header-weather').innerHTML = `${Math.round(d.current.temperature_2m)}<span class="text-sm">°C</span>`;
+                                 document.getElementById('location-label').innerHTML = '<i class="fas fa-map-marker-alt mr-1"></i>所在地即時';
+                             } catch(e){}
+                        }
+                    );
+                }
+
+                // Date Check for Forecast
+                const now = new Date();
+                // Reset time to start of day for comparison
+                now.setHours(0,0,0,0);
+                
+                const tripDate = new Date(TRIP_DATA.meeting.date);
+                tripDate.setHours(0,0,0,0);
+                // Show from 1 day before trip
+                tripDate.setDate(tripDate.getDate() - 1);
+                
+                // If today is earlier than (tripDate - 1 day), do not show forecast
+                if (now < tripDate) {
+                     TRIP_DATA.days.forEach((_, idx) => {
+                         const el = document.getElementById('weather-stats-'+idx);
+                         if(el) el.innerHTML = '<span class="text-xs text-gray-400">天氣預報將於出發前1天顯示</span>';
+                     });
+                     return;
+                }
+            } catch(e){}
+
+            TRIP_DATA.days.forEach(async (day, idx) => {
+                if(!day.lat) return;
+                try {
+                    // Basic Weather + UV + WeatherCode
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${day.lat}&longitude=${day.lon}&daily=precipitation_probability_max,temperature_2m_max,temperature_2m_min,uv_index_max,weather_code&timezone=Asia%2FTokyo&forecast_days=1`);
+                    const d = await res.json();
+                    
+                    // AQI
+                    let aqi = '-';
+                    try {
+                        const aqiRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${day.lat}&longitude=${day.lon}&daily=us_aqi_max&timezone=Asia%2FTokyo&forecast_days=1`);
+                        const aqiData = await aqiRes.json();
+                        if (aqiData.daily && aqiData.daily.us_aqi_max) {
+                            aqi = aqiData.daily.us_aqi_max[0];
+                        }
+                    } catch (aqiErr) {
+                        console.log("AQI Fetch Error", aqiErr);
+                    }
+
+                    if(d.daily) {
+                        const rain = d.daily.precipitation_probability_max[0];
+                        const max = Math.round(d.daily.temperature_2m_max[0]);
+                        const min = Math.round(d.daily.temperature_2m_min[0]);
+                        const uv = d.daily.uv_index_max[0];
+                        const wCode = d.daily.weather_code[0];
+
+                        let aqiColor = "text-green-500";
+                        if(aqi > 50) aqiColor = "text-yellow-500";
+                        if(aqi > 100) aqiColor = "text-orange-500";
+                        if(aqi > 150) aqiColor = "text-red-500";
+
+                        const html = `
+                            <div class="flex gap-3 text-xs w-full">
+                                <div class="flex items-center gap-1"><span class="text-red-400 font-bold">最高</span> ${max}°</div>
+                                <div class="flex items-center gap-1"><span class="text-blue-400 font-bold">最低</span> ${min}°</div>
+                                <div class="flex items-center gap-1"><i class="fas fa-umbrella text-blue-300"></i> ${rain}%</div>
+                            </div>
+                            <div class="flex gap-3 text-[10px] w-full mt-1 opacity-80">
+                                <div><i class="fas fa-sun text-orange-400"></i> UV: ${uv}</div>
+                                <div class="${aqiColor} font-bold"><i class="fas fa-wind"></i> AQI: ${aqi}</div>
+                            </div>`;
+                        
+                        document.getElementById('weather-stats-'+idx).innerHTML = html;
+                        
+                        // Dynamic Weather Icon Logic
+                        let wIcon = '<i class="fas fa-sun text-orange-400"></i>'; // Default
+                        if (wCode >= 1 && wCode <= 3) wIcon = '<i class="fas fa-cloud-sun text-gray-400"></i>';
+                        else if (wCode >= 45 && wCode <= 48) wIcon = '<i class="fas fa-smog text-gray-500"></i>';
+                        else if (wCode >= 51 && wCode <= 67) wIcon = '<i class="fas fa-cloud-rain text-blue-400"></i>';
+                        else if (wCode >= 71 && wCode <= 77) wIcon = '<i class="fas fa-snowflake text-blue-300"></i>';
+                        else if (wCode >= 80 && wCode <= 82) wIcon = '<i class="fas fa-cloud-showers-heavy text-blue-500"></i>';
+                        else if (wCode >= 95) wIcon = '<i class="fas fa-bolt text-yellow-500"></i>';
+
+                        document.getElementById('weather-icon-'+idx).innerHTML = wIcon;
+                    }
+                } catch(e){ console.error(e); }
+            });
+        }
+
+        // --- Dynamic Padding Logic ---
+        function initDynamicPadding() {
+            const header = document.getElementById('app-header');
+            const main = document.getElementById('main-content');
+            if (!header || !main) return;
+
+            const updatePadding = () => {
+                const height = header.offsetHeight;
+                main.style.paddingTop = (height + 15) + 'px'; // Add a little buffer
+            };
+
+            // Initial update
+            updatePadding();
+
+            // Clean up previous observer if exists
+            if (headerResizeObserver) {
+                headerResizeObserver.disconnect();
+            }
+
+            // Create new observer
+            headerResizeObserver = new ResizeObserver(updatePadding);
+            headerResizeObserver.observe(header);
+            
+            // Also update on window resize
+            window.addEventListener('resize', updatePadding);
+        }
+
+        // --- Checklist Logic ---
+        function initChecklist() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+                if(localStorage.getItem(el.id) === 'true') el.checked = true;
+            });
+        }
+        function saveCheck(id) {
+            localStorage.setItem(id, document.getElementById(id).checked);
+        }
+        function resetDailyChecks() {
+            document.querySelectorAll('input[type="checkbox"][id^="daily_"]').forEach(chk => {
+                chk.checked = false;
+                localStorage.setItem(chk.id, 'false');
+            });
+            alert('每日檢查清單已重置！');
+        }
+
+        // --- Currency Logic ---
+        let currentRate = 0.22;
+        async function fetchRate() {
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+                const data = await res.json();
+                if(data.rates.TWD) {
+                    currentRate = data.rates.TWD;
+                    document.getElementById('calc-rate-display').innerText = currentRate.toFixed(3);
+                    renderBudget();
+                    convertCurrency();
+                }
+            } catch(e){}
+        }
+        function convertCurrency() {
+            const jpy = parseFloat(document.getElementById('calc-jpy').value);
+            if(!isNaN(jpy)) {
+                document.getElementById('calc-twd').innerText = Math.round(jpy * currentRate).toLocaleString();
+            } else {
+                document.getElementById('calc-twd').innerText = '0';
+            }
+        }
+
+        // --- Budget & Batch Logic ---
+        let items = [];
+        let batchItems = [];
+        try { const saved = localStorage.getItem('trip_budget'); if (saved) items = JSON.parse(saved); } catch (e) {}
+
+        function getIntVal(id, def = 1) {
+            const val = document.getElementById(id).value;
+            return val ? parseInt(val) : def;
+        }
+
+        function addBatchItem() {
+            const name = document.getElementById('batch-item-name').value;
+            const price = parseInt(document.getElementById('batch-item-price').value);
+            const qty = getIntVal('batch-item-qty', 1);
+            
+            if (name && price) {
+                batchItems.push({ name, price, qty });
+                document.getElementById('batch-item-name').value = '';
+                document.getElementById('batch-item-price').value = '';
+                document.getElementById('batch-item-qty').value = '';
+                
+                // Lock store name
+                const storeInput = document.getElementById('batch-store-name');
+                storeInput.disabled = true;
+                storeInput.classList.add('opacity-50', 'cursor-not-allowed');
+                renderBatch();
+            }
+        }
+
+        function renderBatch() {
+            const list = document.getElementById('batch-list');
+            const totalEl = document.getElementById('batch-total-display');
+            const statusEl = document.getElementById('batch-status-text');
+            const progressEl = document.getElementById('batch-progress');
+            
+            list.innerHTML = '';
+            let batchTotal = 0;
+            batchItems.forEach(item => {
+                const rowTotal = item.price * item.qty;
+                batchTotal += rowTotal;
+                list.innerHTML += `<li class="flex justify-between"><span>${item.name} <span class="text-xs text-gray-400">x${item.qty}</span></span><span>¥${rowTotal}</span></li>`;
+            });
+            
+            totalEl.innerText = '¥' + batchTotal.toLocaleString();
+            const limit = 5500;
+            const progress = Math.min((batchTotal / limit) * 100, 100);
+            const remaining = limit - batchTotal;
+            progressEl.style.width = `${progress}%`;
+            
+            if (batchTotal >= limit) {
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> 已達標！可退稅';
+                statusEl.className = "text-green-500 font-bold text-xs mb-2";
+                progressEl.classList.remove('bg-jp-red');
+                progressEl.classList.add('bg-green-500');
+            } else {
+                statusEl.innerHTML = `還差 ¥${remaining.toLocaleString()}`;
+                statusEl.className = "text-jp-red font-bold text-xs mb-2";
+                progressEl.classList.remove('bg-green-500');
+                progressEl.classList.add('bg-jp-red');
+            }
+        }
+
+        function saveBatchToMain() {
+            if(batchItems.length === 0) return;
+            const storeName = document.getElementById('batch-store-name').value || '未分類商店';
+            if(confirm(`將這 ${batchItems.length} 筆資料存入購物紀錄？`)) {
+                batchItems.forEach(item => {
+                    items.push({
+                        name: `[${storeName}] ${item.name}`,
+                        price: item.price,
+                        qty: item.qty
+                    });
+                });
+                resetBatchInternal();
+                renderBudget();
+                alert('已存入！');
+            }
+        }
+        
+        function resetBatch() {
+            if(batchItems.length > 0 && confirm('清空湊單計算？')) resetBatchInternal();
+        }
+        function resetBatchInternal() {
+            batchItems = [];
+            const storeInput = document.getElementById('batch-store-name');
+            storeInput.value = '';
+            storeInput.disabled = false;
+            storeInput.classList.remove('opacity-50', 'cursor-not-allowed');
+            renderBatch();
+        }
+
+        // --- Main Budget Logic ---
+        function renderBudget() {
+            const list = document.getElementById('budget-list');
+            if(!list) return;
+            list.innerHTML = ''; let total = 0;
+            items.forEach((item, index) => {
+                const qty = item.qty || 1;
+                const rowTotal = item.price * qty;
+                total += rowTotal;
+                list.innerHTML += `<li class="flex justify-between items-center border-b border-gray-50 dark:border-gray-700 pb-1">
+                    <span class="text-gray-600 dark:text-gray-300">${item.name} <span class="text-xs text-gray-400">x${qty}</span></span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-800 dark:text-gray-200">¥${rowTotal}</span>
+                        <button onclick="deleteItem(${index})" class="text-gray-300 hover:text-red-400"><i class="fas fa-times"></i></button>
+                    </div>
+                </li>`;
+            });
+            document.getElementById('total-amount').innerText = '¥' + total.toLocaleString();
+            document.getElementById('twd-amount').innerText = Math.round(total * currentRate).toLocaleString();
+            try { localStorage.setItem('trip_budget', JSON.stringify(items)); } catch(e) {}
+        }
+        function addItem() {
+            const name = document.getElementById('item-name').value;
+            const price = parseInt(document.getElementById('item-price').value);
+            const qty = getIntVal('item-qty', 1);
+            if (name && price) { 
+                items.push({ name, price, qty }); 
+                document.getElementById('item-name').value = ''; 
+                document.getElementById('item-price').value = ''; 
+                document.getElementById('item-qty').value = ''; 
+                renderBudget(); 
+            }
+        }
+        function deleteItem(idx) { items.splice(idx, 1); renderBudget(); }
+        function resetBudget() { if(confirm('清空記帳？')) { items = []; renderBudget(); } }
+
+        // --- Speech ---
+        function speakJp(text, romaji) {
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'ja-JP';
+                u.rate = 0.9;
+                document.getElementById('speak-status').innerText = `🔊 播放中: ${romaji}`;
+                u.onend = function() { document.getElementById('speak-status').innerText = ''; };
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function callGuide(phone) {
+            alert("如果導遊沒有接聽，可能是在日本帶團中，請見諒。\n\n因導遊通常在出發前1天才會拿到旅客資料，如果您有想詢問的事項，建議在出發前一天再詢問導遊，會比較能提供協助。\n\n如想先詢問可以洽詢您的業務。");
+            window.location.href = 'tel:' + phone;
+        }
+
+        // Init
+        fetchWeather();
+        fetchRate();
+        initChecklist();
+        renderBudget();
+
+    </script>
+</body>
+</html>
