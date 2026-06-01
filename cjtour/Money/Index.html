@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旅行社帳務與出團管理儀表板</title>
+  <!-- 引入 Google Fonts (Outfit 與 Noto Sans TC) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #111827 100%);
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --secondary: #14b8a6;
+      --secondary-hover: #0d9488;
+      --accent: #d946ef;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --success: #10b981;
+      --error: #f43f5e;
+      --cal-day-bg: rgba(31, 41, 55, 0.4);
+      --cal-day-has-tour: rgba(99, 102, 241, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* 頂部標頭與 API 設定列 */
+    .header-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    @media (min-width: 768px) {
+      .header-container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .header-info h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #a5b4fc, #2dd4bf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .api-config-box {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .api-config-box label {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--secondary);
+      white-space: nowrap;
+    }
+
+    /* 響應式雙欄佈局 */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+    }
+
+    /* 玻璃擬態卡片 */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 4px solid var(--primary);
+      padding-left: 8px;
+    }
+
+    /* 表單樣式 */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* 按鈕樣式 */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+      box-shadow: 0 4px 12px 0 rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover {
+      background: #4f46e5;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--secondary) 0%, #0d9488 100%);
+      box-shadow: 0 4px 12px 0 rgba(20, 184, 166, 0.3);
+    }
+    .btn-secondary:hover {
+      background: #0d9488;
+      transform: translateY(-1px);
+    }
+
+    /* 網頁月曆設計 */
+    .calendar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .calendar-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .cal-nav-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .cal-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1-fr);
+      gap: 6px;
+    }
+
+    .cal-week-label {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 6px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .cal-day-cell {
+      background: var(--cal-day-bg);
+      border-radius: 8px;
+      min-height: 60px;
+      padding: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cal-day-cell:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .cal-day-num {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    .cal-day-cell.other-month {
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .cal-day-cell.has-tour {
+      background: var(--cal-day-has-tour);
+      border-left: 3px solid var(--primary);
+    }
+
+    .cal-day-cell.selected {
+      border: 1px solid var(--secondary) !important;
+    }
+
+    .cal-tour-badge {
+      font-size: 0.7rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 4px;
+      padding: 2px 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* 懸浮出團詳情面板 */
+    .tour-details-panel {
+      margin-top: 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      display: none;
+    }
+
+    .tour-details-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 10px;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      padding-bottom: 6px;
+    }
+
+    .tour-item {
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .tour-item p {
+      margin-bottom: 4px;
+    }
+
+    .tour-item p:last-child {
+      margin-bottom: 0;
+    }
+
+    .tour-item-highlight {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    /* 載入狀態 */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toast 通知 */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      max-width: 400px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 999;
+      transform: translateY(150%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+    }
+
+    .toast-icon {
+      font-size: 1.2rem;
+    }
+
+    .toast-message {
+      font-size: 0.85rem;
+      line-height: 1.3;
+    }
+
+    .toast-success { border-left: 4px solid var(--success); }
+    .toast-error { border-left: 4px solid var(--error); }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部列：標題與 API 設定 -->
+  <div class="header-container">
+    <div class="header-info">
+      <h1>旅行社帳務與出團管理系統</h1>
+      <p>Cloudflare Pages 託管 ➔ Google Sheets 雲端資料庫</p>
+    </div>
+    <!-- API URL 設定框 (儲存於瀏覽器 localStorage 中，避免寫死程式碼) -->
+    <div class="api-config-box">
+      <label for="apiUrlInput">API URL：</label>
+      <input type="text" id="apiUrlInput" class="form-control" placeholder="貼上您的 Apps Script Web App 網址" onchange="saveApiUrl()">
+    </div>
+  </div>
+
+  <!-- 雙欄儀表板佈局 -->
+  <div class="dashboard-grid">
+    
+    <!-- 左欄：報表生成與新增訂單 -->
+    <div class="left-column">
+      
+      <!-- 業務績效報表 (PDF) -->
+      <div class="card">
+        <div class="card-title">💼 業務業績報表 (PDF 一鍵產生)</div>
+        
+        <div class="form-group">
+          <label for="salesSelect">選擇業務</label>
+          <select id="salesSelect" class="form-control">
+            <option value="">請先在 API 輸入框貼上網址並儲存</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="salesYear">年份</label>
+            <select id="salesYear" class="form-control">
+              <option value="2026">2026 年</option>
+              <option value="2025">2025 年</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="salesMonth">月份 (選填)</label>
+            <select id="salesMonth" class="form-control">
+              <option value="">全年度</option>
+              <option value="1">1 月</option>
+              <option value="2">2 月</option>
+              <option value="3">3 月</option>
+              <option value="4">4 月</option>
+              <option value="5">5 月</option>
+              <option value="6" selected>6 月</option>
+              <option value="7">7 月</option>
+              <option value="8">8 月</option>
+              <option value="9">9 月</option>
+              <option value="10">10 月</option>
+              <option value="11">11 月</option>
+              <option value="12">12 月</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btnGenSales" class="btn btn-primary" onclick="triggerSalesReportPDF()">
+          <span class="spinner" id="spinSales"></span>
+          <span>產生 PDF 業務報表</span>
+        </button>
+      </div>
+
+      <!-- 公司財務報表 (PDF) -->
+      <div class="card">
+        <div class="card-title">📊 公司財務年報 (PDF 一鍵產生)</div>
+        
+        <div class="form-group">
+          <label for="finYear">統計年度</label>
+          <select id="finYear" class="form-control">
+            <option value="2026">2026 年</option>
+            <option value="2025">2025 年</option>
+          </select>
+        </div>
+
+        <button id="btnGenFin" class="btn btn-secondary" onclick="triggerFinancialReportPDF()">
+          <span class="spinner" id="spinFin"></span>
+          <span>產生 PDF 財務年報</span>
+        </button>
+      </div>
+
+      <!-- 快捷新增訂單 -->
+      <div class="card">
+        <div class="card-title">✍️ 快捷新增出團訂單</div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderSales">負責業務 *</label>
+            <select id="newOrderSales" class="form-control">
+              <option value="">載入中...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newOrderGuide">隨團領隊</label>
+            <input type="text" id="newOrderGuide" class="form-control" placeholder="如：張大山">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderCustomer">客戶姓名 *</label>
+            <input type="text" id="newOrderCustomer" class="form-control" placeholder="客戶聯絡人">
+          </div>
+          <div class="form-group">
+            <label for="newOrderPhone">客戶電話</label>
+            <input type="text" id="newOrderPhone" class="form-control" placeholder="09xx-xxx-xxx">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderItem">產品項目</label>
+            <select id="newOrderItem" class="form-control">
+              <option value="日本東京五日遊">日本東京五日遊</option>
+              <option value="韓國首爾四日遊">韓國首爾四日遊</option>
+              <option value="泰國曼谷自由行">泰國曼谷自由行</option>
+              <option value="全球訂房服務">全球訂房服務</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="newOrderPax">旅客人數 *</label>
+            <input type="number" id="newOrderPax" class="form-control" value="2" min="1">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderRevenue">應收營業額 *</label>
+            <input type="number" id="newOrderRevenue" class="form-control" placeholder="應收總額" min="0">
+          </div>
+          <div class="form-group">
+            <label for="newOrderCost">預付成本 *</label>
+            <input type="number" id="newOrderCost" class="form-control" placeholder="底價" min="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderGuidePaid">領隊代墊款</label>
+            <input type="number" id="newOrderGuidePaid" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label for="newOrderCommission">業務佣金</label>
+            <input type="number" id="newOrderCommission" class="form-control" value="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newOrderTaxRefund">客戶退稅金額</label>
+            <input type="number" id="newOrderTaxRefund" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label for="newOrderDeparture">出發日期 *</label>
+            <input type="date" id="newOrderDeparture" class="form-control">
+          </div>
+        </div>
+
+        <button id="btnCreateOrder" class="btn btn-primary" onclick="triggerCreateOrder()">
+          <span class="spinner" id="spinCreate"></span>
+          <span>寫入試算表並計算利潤</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 右欄：出團日曆與詳情 -->
+    <div class="right-column">
+      
+      <div class="card">
+        <div class="card-title">📅 互動出團日曆</div>
+        
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">◀ 上個月</button>
+            <h3 id="calendarMonthTitle">2026年 6月</h3>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">下個月 ▶</button>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="cal-week-label">日</div>
+            <div class="cal-week-label">一</div>
+            <div class="cal-week-label">二</div>
+            <div class="cal-week-label">三</div>
+            <div class="cal-week-label">四</div>
+            <div class="cal-week-label">五</div>
+            <div class="cal-week-label">六</div>
+          </div>
+          
+          <div class="calendar-grid" id="calendarDaysGrid">
+            <!-- 日期由 JS 生成 -->
+          </div>
+        </div>
+
+        <!-- 出團明細 -->
+        <div class="tour-details-panel" id="tourDetailsPanel">
+          <div class="tour-details-title" id="tourDetailsTitle">出團明細</div>
+          <div id="tourDetailsContent"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Toast 通知 UI -->
+  <div id="toast" class="toast">
+    <span id="toastIcon" class="toast-icon">ℹ️</span>
+    <div id="toastMessage" class="toast-message">訊息提示</div>
+  </div>
+
+  <script>
+    let currentYear = 2026;
+    let currentMonth = 6;
+    let currentTours = [];
+    let API_URL = "";
+
+    window.onload = function() {
+      // 設定快捷訂單預設日期為今天
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('newOrderDeparture').value = today;
+
+      // 從 localStorage 載入 API 網址
+      const savedUrl = localStorage.getItem("cjtour_api_url");
+      if (savedUrl) {
+        document.getElementById("apiUrlInput").value = savedUrl;
+        API_URL = savedUrl;
+        initializeSystem();
+      } else {
+        showToast("請先在頂部輸入框貼上您的 Apps Script Web App 網址！", "error");
+      }
+    };
+
+    /**
+     * 儲存 API 網址並初始化
+     */
+    function saveApiUrl() {
+      const url = document.getElementById("apiUrlInput").value.trim();
+      localStorage.setItem("cjtour_api_url", url);
+      API_URL = url;
+      showToast("API 網址儲存成功，正在連線...", "success");
+      initializeSystem();
+    }
+
+    /**
+     * 初始化系統
+     */
+    function initializeSystem() {
+      if (!API_URL) return;
+      
+      callAPI("getSales")
+        .then(list => {
+          populateSalesDropdowns(list);
+          loadCalendarData();
+        })
+        .catch(err => {
+          showToast("連線失敗！請檢查 API 網址是否正確且已將存取權限設為「任何人」: " + err.message, "error");
+        });
+    }
+
+    /**
+     * 封裝 fetch 通訊，以支援與 Apps Script Web App 的跨域傳輸
+     */
+    async function callAPI(action, data = {}) {
+      if (!API_URL) {
+        throw new Error("請先輸入 API 網址！");
+      }
+
+      const payload = JSON.stringify({ action: action, ...data });
+
+      // 使用 text/plain 傳遞以避免瀏覽器觸發 CORS OPTIONS 預檢限制
+      const response = await fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: payload
+      });
+
+      if (!response.ok) {
+        throw new Error("伺服器連線異常");
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data || result;
+    }
+
+    /**
+     * 填充業務下拉選單
+     */
+    function populateSalesDropdowns(salesList) {
+      const salesSelect = document.getElementById("salesSelect");
+      const newOrderSales = document.getElementById("newOrderSales");
+      salesSelect.innerHTML = "";
+      newOrderSales.innerHTML = "";
+
+      if (!salesList || salesList.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.text = "無業務資料";
+        salesSelect.appendChild(opt.cloneNode(true));
+        newOrderSales.appendChild(opt);
+        return;
+      }
+
+      salesList.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.text = name;
+        salesSelect.appendChild(opt.cloneNode(true));
+        newOrderSales.appendChild(opt);
+      });
+    }
+
+    /**
+     * 載入月曆出團資料
+     */
+    function loadCalendarData() {
+      document.getElementById("calendarMonthTitle").innerText = `${currentYear}年 ${currentMonth}月`;
+      
+      callAPI("getCalendar", { year: currentYear, month: currentMonth })
+        .then(tours => {
+          currentTours = tours;
+          renderCalendar();
+        })
+        .catch(err => {
+          showToast("載入日曆失敗: " + err.message, "error");
+        });
+    }
+
+    /**
+     * 切換月份
+     */
+    function changeMonth(dir) {
+      currentMonth += dir;
+      if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear -= 1;
+      } else if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear += 1;
+      }
+      document.getElementById("tourDetailsPanel").style.display = "none";
+      loadCalendarData();
+    }
+
+    /**
+     * 渲染月曆
+     */
+    function renderCalendar() {
+      const grid = document.getElementById("calendarDaysGrid");
+      grid.innerHTML = "";
+
+      const firstDay = new Date(currentYear, currentMonth - 1, 1);
+      const startDayOfWeek = firstDay.getDay();
+      const totalDays = new Date(currentYear, currentMonth, 0).getDate();
+
+      // 上個月底空白
+      for (let i = 0; i < startDayOfWeek; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell other-month";
+        grid.appendChild(cell);
+      }
+
+      // 當月天數
+      for (let day = 1; day <= totalDays; day++) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell";
+        
+        const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        cell.dataset.date = dateStr;
+
+        const numSpan = document.createElement("span");
+        numSpan.className = "cal-day-num";
+        numSpan.innerText = day;
+        cell.appendChild(numSpan);
+
+        const dayTours = currentTours.filter(t => t.date === dateStr);
+        if (dayTours.length > 0) {
+          cell.classList.add("has-tour");
+          const badge = document.createElement("div");
+          badge.className = "cal-tour-badge";
+          badge.innerText = `🚌 ${dayTours.length} 團`;
+          cell.appendChild(badge);
+        }
+
+        cell.onclick = function() {
+          document.querySelectorAll('.cal-day-cell').forEach(c => c.classList.remove('selected'));
+          cell.classList.add('selected');
+          showTourDetails(dateStr, dayTours);
+        };
+
+        grid.appendChild(cell);
+      }
+    }
+
+    /**
+     * 展開單日出團細節
+     */
+    function showTourDetails(dateStr, dayTours) {
+      const panel = document.getElementById("tourDetailsPanel");
+      const title = document.getElementById("tourDetailsTitle");
+      const content = document.getElementById("tourDetailsContent");
+
+      title.innerText = `🚌 ${dateStr} 出團細節 (${dayTours.length} 團)`;
+      content.innerHTML = "";
+
+      if (dayTours.length === 0) {
+        panel.style.display = "none";
+        return;
+      }
+
+      dayTours.forEach(tour => {
+        const div = document.createElement("div");
+        div.className = "tour-item";
+        div.innerHTML = `
+          <p><span class="tour-item-highlight">${tour.item}</span> (${tour.pax}人)</p>
+          <p>業務: ${tour.sales} | 客戶: ${tour.customer} | 應收: $${formatCurrency(tour.revenue)}</p>
+          <p style="font-size:0.65rem; color:var(--text-muted);">訂單號: ${tour.orderNo}</p>
+        `;
+        content.appendChild(div);
+      });
+
+      panel.style.display = "block";
+    }
+
+    /**
+     * 產生 PDF 業務業績報表
+     */
+    function triggerSalesReportPDF() {
+      const salesName = document.getElementById("salesSelect").value;
+      if (!salesName) {
+        showToast("請選擇業務！", "error");
+        return;
+      }
+      const year = document.getElementById("salesYear").value;
+      const month = document.getElementById("salesMonth").value;
+
+      toggleLoading("btnGenSales", "spinSales", true);
+
+      callAPI("genSalesReport", { salesName, year, month })
+        .then(res => {
+          toggleLoading("btnGenSales", "spinSales", false);
+          showToast(`PDF 產生成功！即將開啟下載連結。`, "success");
+          window.open(res.pdfUrl, '_blank');
+        })
+        .catch(err => {
+          toggleLoading("btnGenSales", "spinSales", false);
+          showToast("產生失敗: " + err.message, "error");
+        });
+    }
+
+    /**
+     * 產生 PDF 公司財務年報
+     */
+    function triggerFinancialReportPDF() {
+      const year = document.getElementById("finYear").value;
+
+      toggleLoading("btnGenFin", "spinFin", true);
+
+      callAPI("genFinReport", { year })
+        .then(res => {
+          toggleLoading("btnGenFin", "spinFin", false);
+          showToast(`PDF 產生成功！即將開啟下載連結。`, "success");
+          window.open(res.pdfUrl, '_blank');
+        })
+        .catch(err => {
+          toggleLoading("btnGenFin", "spinFin", false);
+          showToast("產生失敗: " + err.message, "error");
+        });
+    }
+
+    /**
+     * 快捷新增訂單
+     */
+    function triggerCreateOrder() {
+      const salesName = document.getElementById("newOrderSales").value;
+      const guideName = document.getElementById("newOrderGuide").value.trim();
+      const customerName = document.getElementById("newOrderCustomer").value.trim();
+      const customerPhone = document.getElementById("newOrderPhone").value.trim();
+      const itemName = document.getElementById("newOrderItem").value;
+      const pax = document.getElementById("newOrderPax").value;
+      const revenue = document.getElementById("newOrderRevenue").value;
+      const cost = document.getElementById("newOrderCost").value;
+      const guidePaid = document.getElementById("newOrderGuidePaid").value;
+      const commission = document.getElementById("newOrderCommission").value;
+      const taxRefund = document.getElementById("newOrderTaxRefund").value;
+      const departureDate = document.getElementById("newOrderDeparture").value;
+
+      if (!salesName || !customerName || !revenue || !cost || !departureDate) {
+        showToast("請填寫所有必填欄位 (*)！", "error");
+        return;
+      }
+
+      const orderData = {
+        salesName, guideName, customerName, customerPhone, itemName, pax, revenue, cost, guidePaid, commission, taxRefund, departureDate
+      };
+
+      toggleLoading("btnCreateOrder", "spinCreate", true);
+
+      callAPI("createOrder", { orderData })
+        .then(res => {
+          toggleLoading("btnCreateOrder", "spinCreate", false);
+          showToast(`訂單新增成功！編號：${res.orderNo}，利潤已自動算好。`, "success");
+          
+          document.getElementById("newOrderGuide").value = "";
+          document.getElementById("newOrderCustomer").value = "";
+          document.getElementById("newOrderPhone").value = "";
+          document.getElementById("newOrderRevenue").value = "";
+          document.getElementById("newOrderCost").value = "";
+          document.getElementById("newOrderGuidePaid").value = "0";
+          document.getElementById("newOrderCommission").value = "0";
+          document.getElementById("newOrderTaxRefund").value = "0";
+          
+          loadCalendarData();
+        })
+        .catch(err => {
+          toggleLoading("btnCreateOrder", "spinCreate", false);
+          showToast("新增失敗: " + err.message, "error");
+        });
+    }
+
+    function toggleLoading(btnId, spinnerId, isLoading) {
+      const btn = document.getElementById(btnId);
+      const spinner = document.getElementById(spinnerId);
+      if (isLoading) {
+        btn.disabled = true;
+        spinner.style.display = "inline-block";
+        btn.style.opacity = "0.7";
+      } else {
+        btn.disabled = false;
+        spinner.style.display = "none";
+        btn.style.opacity = "1";
+      }
+    }
+
+    function showToast(message, type) {
+      const toast = document.getElementById("toast");
+      const icon = document.getElementById("toastIcon");
+      const msgText = document.getElementById("toastMessage");
+
+      toast.className = "toast show";
+      if (type === "success") {
+        toast.classList.add("toast-success");
+        icon.innerText = "✅";
+      } else {
+        toast.classList.add("toast-error");
+        icon.innerText = "❌";
+      }
+
+      msgText.innerText = message;
+
+      setTimeout(function() {
+        toast.className = "toast";
+      }, 4000);
+    }
+
+    function formatCurrency(num) {
+      return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+  </script>
+</body>
+</html>
