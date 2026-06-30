@@ -15,8 +15,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Swiper.js CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <!-- Swiper.js CSS (改用高穩定的 cdnjs) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css" />
     
     <style>
         :root {
@@ -427,10 +427,10 @@
         </div>
     </footer>
 
-    <!-- JS 庫引入 -->
+    <!-- JS 庫引入 (改用高穩定的 cdnjs) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
 
     <script>
         // ==========================================
@@ -448,6 +448,23 @@
         let swiperInstance = null;
         let currentEffect = 'coverflow';
         let isShuffle = false; // 是否開啟隨機模式
+
+        // 帶有超時控制的 fetch 輔助函式，防止手機瀏覽器因跨網域請求掛起而一直轉圈圈
+        function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 5000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            return fetch(resource, {
+                ...options,
+                signal: controller.signal
+            }).then(response => {
+                clearTimeout(id);
+                return response;
+            }).catch(error => {
+                clearTimeout(id);
+                throw error;
+            });
+        }
 
         // 頁面載入完成
         document.addEventListener("DOMContentLoaded", function() {
@@ -477,21 +494,21 @@
         // 讀取全域點擊數
         async function fetchGlobalClicks() {
             if (!gasApiUrl) {
-                // 若無設定 API，從 localStorage 抓取本地紀錄作為替代
+                // 若無設定 API，從 localStorage 抓取本地紀錄作為替代 (防範手機無痕模式禁用)
                 try {
                     const localClicks = localStorage.getItem('dm_clicks_fallback');
                     if (localClicks) {
                         CLICKS_MAP = JSON.parse(localClicks);
                     }
                 } catch(e) {
-                    console.error("無法讀取 LocalStorage", e);
+                    console.warn("LocalStorage 遭瀏覽器停用:", e);
                 }
                 return;
             }
 
             try {
-                // 加上 timestamp 防止快取
-                const response = await fetch(`${gasApiUrl}?action=getAll&t=${new Date().getTime()}`);
+                // 加上 timestamp 防止快取，並限制 2.5 秒超時以防無限轉圈圈
+                const response = await fetchWithTimeout(`${gasApiUrl}?action=getAll&t=${new Date().getTime()}`, { timeout: 2500 });
                 if (response.ok) {
                     const json = await response.json();
                     if (json.status === "success" && json.data) {
@@ -500,16 +517,23 @@
                 }
             } catch (err) {
                 console.warn("無法取得伺服器點擊統計，將降級為本地紀錄:", err);
-                // 降級載入本地紀錄
-                const localClicks = localStorage.getItem('dm_clicks_fallback');
-                if (localClicks) CLICKS_MAP = JSON.parse(localClicks);
+                // 降級載入本地紀錄 (防範手機無痕模式禁用)
+                try {
+                    const localClicks = localStorage.getItem('dm_clicks_fallback');
+                    if (localClicks) {
+                        CLICKS_MAP = JSON.parse(localClicks);
+                    }
+                } catch(e) {
+                    console.warn("LocalStorage 遭瀏覽器停用:", e);
+                }
             }
         }
 
         // 抓取 Google 試算表 CSV
         function fetchSheetData() {
             return new Promise((resolve, reject) => {
-                fetch(googleSheetUrl)
+                // 限制 Google Sheet 載入最長 5 秒，逾時自動中斷防卡死
+                fetchWithTimeout(googleSheetUrl, { timeout: 5000 })
                     .then(response => {
                         if (!response.ok) throw new Error("Google Sheet 網路回應異常");
                         return response.text();
@@ -528,9 +552,15 @@
                                     return;
                                 }
 
-                                renderCarousel();
-                                hideLoading();
-                                resolve();
+                                try {
+                                    renderCarousel();
+                                    hideLoading();
+                                    resolve();
+                                } catch (renderError) {
+                                    console.error("輪播渲染失敗:", renderError);
+                                    hideLoading(); // 確保遮罩不卡死
+                                    reject(new Error("輪播元件初始化異常，請重試：" + renderError.message));
+                                }
                             },
                             error: function(err) {
                                 reject(new Error("CSV 解析失敗: " + err.message));
@@ -629,15 +659,25 @@
 
         // 建立或重置 Swiper
         function buildSwiper(effectName) {
+            if (typeof Swiper === 'undefined') {
+                throw new Error("Swiper 核心庫尚未載入完成");
+            }
+
             if (swiperInstance) {
                 swiperInstance.destroy(true, true);
             }
+
+            // 特效適配：Slide & Coverflow 可在大螢幕下多卡並列
+            const isMulti = ['slide', 'coverflow'].includes(effectName);
+            // 動態判斷 Loop 安全性：Slide 數量少於滑動行數的兩倍時，開啟 loop 會崩潰
+            const requiredSlides = isMulti ? 6 : 2;
+            const canLoop = ALL_TOURS.length >= requiredSlides;
 
             const swiperConfig = {
                 effect: effectName,
                 grabCursor: true,
                 centeredSlides: true,
-                loop: true,
+                loop: canLoop,
                 autoplay: {
                     delay: 4000,
                     disableOnInteraction: false,
