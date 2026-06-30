@@ -99,23 +99,28 @@
             pointer-events: none;
         }
 
-        /* Swiper 容器樣式 */
+        /* Swiper 容器樣式與 16:9/9:16 比例控制 */
         .swiper-container-wrapper {
             position: relative;
             flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 0;
+            padding: 10px 0;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            aspect-ratio: 16 / 9; /* 橫向強制 16:9 */
         }
 
         .swiper {
             width: 100%;
-            padding-top: 20px;
-            padding-bottom: 50px;
+            height: 100%;
+            padding-top: 5px;
+            padding-bottom: 25px;
         }
 
-        /* DM 卡片樣式 */
+        /* DM 卡片樣式 - 填滿輪播高度 */
         .dm-card {
             background: var(--card-glass);
             backdrop-filter: blur(10px);
@@ -130,7 +135,7 @@
             max-width: 380px;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            height: 100%; /* 填滿 Swiper 容器 */
         }
 
         /* 3D 懸停效果僅在非觸控裝置上生效 */
@@ -143,16 +148,18 @@
             }
         }
 
+        /* 圖片區域最大化 */
         .dm-image-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 210 / 297; /* A4 比例 */
-            background-color: rgba(0, 0, 0, 0.2);
+            flex-grow: 1; /* 分配所有可用空間 */
+            height: 0; /* 讓 flex-grow 決定高度 */
+            background-color: transparent;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border-glass);
+            border-bottom: none;
         }
 
         .dm-img {
@@ -199,31 +206,32 @@
             z-index: 10;
         }
 
+        /* 卡片文字與內邊距微縮 */
         .card-info {
-            padding: 18px;
+            padding: 10px 15px;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            flex-shrink: 0; /* 禁止文字區域被壓縮 */
             text-align: center;
         }
 
         .dm-title {
-            font-size: 1.15rem;
+            font-size: 1rem;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             color: white;
-            line-height: 1.4;
+            line-height: 1.35;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 3.2rem;
+            height: 2.7rem;
         }
 
         .dm-meta {
             font-size: 0.8rem;
             color: #ffc107;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
@@ -233,10 +241,10 @@
             background: linear-gradient(135deg, #f37021 0%, #ff8e42 100%);
             border: none;
             color: white;
-            padding: 10px 20px;
+            padding: 6px 15px;
             border-radius: 25px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
             width: 100%;
@@ -331,6 +339,11 @@
 
         /* 橫向與直向螢幕自適應修正 */
         @media (max-width: 767.98px) {
+            .swiper-container-wrapper {
+                aspect-ratio: 9 / 16; /* 直向強制 9:16 */
+                max-height: 80vh; /* 避免直式溢出螢幕高度 */
+                padding: 5px 0;
+            }
             .swiper-button-next, .swiper-button-prev {
                 display: none !important; /* 手機版隱藏左右箭頭，直接手勢滑動 */
             }
@@ -374,6 +387,11 @@
                         </select>
                     </div>
                 </div>
+                
+                <!-- 新增：順序/隨機切換按鈕 -->
+                <button id="sort-toggle-btn" class="btn btn-outline-light rounded-pill px-4 btn-sm d-flex align-items-center gap-2" onclick="toggleSortOrder()">
+                    <i class="fa-solid fa-arrow-down-1-9"></i> 順序播放
+                </button>
             </div>
         </div>
     </header>
@@ -424,9 +442,11 @@
         const gasApiUrl = ""; 
 
         let ALL_TOURS = [];
+        let ORIGINAL_TOURS = []; // 儲存原始行程順序的備份
         let CLICKS_MAP = {};
         let swiperInstance = null;
         let currentEffect = 'coverflow';
+        let isShuffle = false; // 是否開啟隨機模式
 
         // 頁面載入完成
         document.addEventListener("DOMContentLoaded", function() {
@@ -500,7 +520,8 @@
                             complete: function(results) {
                                 // 過濾掉沒有 id 或標題的無效列
                                 ALL_TOURS = results.data.filter(item => item.id && item.title);
-                                
+                                ORIGINAL_TOURS = [...ALL_TOURS]; // 備份原始行程
+
                                 if (ALL_TOURS.length === 0) {
                                     reject(new Error("試算表內沒有有效的行程資料。"));
                                     return;
@@ -731,6 +752,38 @@
                         console.warn("GAS API 連線失敗:", err);
                     });
             }
+        }
+
+        // 新增：切換順序/隨機播放邏輯
+        function toggleSortOrder() {
+            const btn = document.getElementById('sort-toggle-btn');
+            isShuffle = !isShuffle;
+
+            if (isShuffle) {
+                // 隨機播放：打亂陣列
+                ALL_TOURS = shuffleArray([...ORIGINAL_TOURS]);
+                btn.innerHTML = `<i class="fa-solid fa-shuffle me-1"></i>隨機播放`;
+                btn.classList.replace('btn-outline-light', 'btn-warning');
+                btn.classList.add('text-dark');
+            } else {
+                // 順序播放：還原備份
+                ALL_TOURS = [...ORIGINAL_TOURS];
+                btn.innerHTML = `<i class="fa-solid fa-arrow-down-1-9 me-1"></i>順序播放`;
+                btn.classList.replace('btn-warning', 'btn-outline-light');
+                btn.classList.remove('text-dark');
+            }
+
+            // 重新渲染輪播
+            renderCarousel();
+        }
+
+        // 經典 Fisher-Yates 隨機打亂演算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
     </script>
 </body>
