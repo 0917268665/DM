@@ -191,6 +191,9 @@
             max-width: 500px; /* 最大寬度調整至 500px 以便在大螢幕上拉大圖片高度 */
             display: flex;
             flex-direction: column;
+            will-change: transform; /* 提前告知瀏覽器變形，開啟硬體加速 */
+            transform: translateZ(0); /* 啟用 iOS 3D 渲染合成層，防範滑動動畫時閃退 */
+            -webkit-transform: translateZ(0);
         }
 
         /* 3D 懸停效果僅在非觸控裝置上生效 */
@@ -221,6 +224,9 @@
             height: 100%;
             object-fit: contain;
             transition: transform 0.5s ease;
+            will-change: transform;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
 
         .dm-card:hover .dm-img {
@@ -432,6 +438,9 @@
             }
             .swiper-button-next, .swiper-button-prev {
                 display: none !important; /* 手機版隱藏左右箭頭，直接手勢滑動 */
+            }
+            .dm-card {
+                max-width: 320px !important; /* 手機版進一步限制卡片寬度，將解碼顯存開銷降低 60% */
             }
         }
     </style>
@@ -708,7 +717,7 @@
                 const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (match && match[1]) {
                     return isImage 
-                        ? `https://drive.google.com/uc?export=view&id=${match[1]}`
+                        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`
                         : `https://docs.google.com/uc?export=download&id=${match[1]}`;
                 }
             }
@@ -762,7 +771,7 @@
                 slide.innerHTML = `
                     <div class="dm-card" onclick="handleCardClick('${tour.id}', '${tour.title.replace(/'/g, "\\'")}', '${tour.company_prod_no}')">
                         <div class="dm-image-wrapper">
-                            <img src="${imgSrc}" class="dm-img" alt="${tour.title}" loading="lazy">
+                            <img src="${imgSrc}" class="dm-img" alt="${tour.title}">
                         </div>
                         <div class="card-info">
                             <div class="dm-title">${tour.title}</div>
