@@ -179,7 +179,9 @@
 
         /* DM 卡片樣式 - 放大最大寬度限制 */
         .dm-card {
-            background: rgba(25, 32, 42, 0.95); /* 改用純色半透明背景，徹底移除 backdrop-filter，防止 iOS Safari/Chrome 在 Swiper 滑動動畫時因實時模糊計算導致 WebKit 崩潰 */
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border-glass);
             border-radius: 18px;
             overflow: hidden;
@@ -390,48 +392,20 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 橫向與直向螢幕自適應修正 - 極致壓縮手機版 Header 高度並優化齒輪定位 */
+        /* 橫向與直向螢幕自適應修正 - 還原手機高度自然排版 */
         @media (max-width: 767.98px) {
-            .glass-header {
-                padding: 8px 0 !important;
-                position: relative; /* 確保齒輪絕對定位基準 */
-            }
-            .glass-header .header-logo {
-                max-height: 32px; /* 縮小 Logo */
-                padding: 3px 8px;
-            }
-            .glass-header h5 {
-                font-size: 0.95rem !important; /* 縮小標題字體 */
-            }
-            .header-business-info {
-                font-size: 0.72rem !important; /* 縮小業務聯絡資訊 */
-                margin-top: 2px !important;
-                gap: 5px !important;
-            }
-            .settings-dropdown {
-                position: absolute;
-                right: 15px;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 1010;
-            }
-            .settings-btn {
-                width: 34px; /* 縮小齒輪按鈕，精緻且省空間 */
-                height: 34px;
-            }
-            .settings-menu {
-                right: 0;
-                top: 100%;
-                margin-top: 8px;
-                width: 280px;
-                padding: 15px;
-            }
             .swiper-container-wrapper {
                 width: 100%;
                 padding: 10px 0;
             }
             .swiper-button-next, .swiper-button-prev {
                 display: none !important; /* 手機版隱藏左右箭頭，直接手勢滑動 */
+            }
+            .glass-header .header-logo {
+                max-height: 35px;
+            }
+            .header-info-mini {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -577,12 +551,6 @@
 
         // 頁面載入完成
         document.addEventListener("DOMContentLoaded", function() {
-            // 如果為手機版，預設將特效設為 slide，並更新下拉選單顯示值以防 3D 渲染記憶體崩潰
-            if (window.innerWidth < 768) {
-                currentEffect = 'slide';
-                const select = document.getElementById('effect-select');
-                if (select) select.value = 'slide';
-            }
             initApp();
         });
 
@@ -802,9 +770,8 @@
             // 特效適配：Slide & Coverflow 可在大螢幕下多卡並列
             const isMulti = ['slide', 'coverflow'].includes(activeEffect);
             // 動態判斷 Loop 安全性：Slide 數量少於滑動行數的兩倍時，開啟 loop 會崩潰
-            // 手機版一律強行關閉 loop 特效，避免 iOS 複製與切換 DOM 時發生崩潰
             const requiredSlides = isMulti ? 6 : 2;
-            const canLoop = isMobile ? false : (ALL_TOURS.length >= requiredSlides);
+            const canLoop = ALL_TOURS.length >= requiredSlides;
 
             const swiperConfig = {
                 effect: activeEffect,
