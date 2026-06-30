@@ -183,7 +183,7 @@
             border: 1px solid var(--border-glass);
             border-radius: 18px;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin: 0 auto;
@@ -399,20 +399,32 @@
         /* 橫向與直向螢幕自適應修正 - 極致壓縮手機版 Header 高度並優化齒輪定位 */
         @media (max-width: 767.98px) {
             .glass-header {
-                padding: 8px 0 !important;
+                padding: 6px 0 !important;
                 position: relative; /* 確保齒輪絕對定位基準 */
             }
             .glass-header .header-logo {
                 max-height: 32px; /* 縮小 Logo */
                 padding: 3px 8px;
             }
+            .header-left-wrapper {
+                flex-wrap: nowrap !important; /* 強制 Logo、標題與加 LINE 並排在一行 */
+                gap: 8px !important;
+                width: calc(100% - 45px); /* 留出空間給右上角齒輪 */
+            }
+            .header-title-area {
+                border-left: none !important; /* 手機端拔除左邊框節省像素 */
+                padding-left: 0 !important;
+            }
             .glass-header h5 {
                 font-size: 0.95rem !important; /* 縮小標題字體 */
             }
             .header-business-info {
-                font-size: 0.72rem !important; /* 縮小業務聯絡資訊 */
-                margin-top: 2px !important;
+                font-size: 0.65rem !important; /* 極致壓縮業務聯絡資訊 */
+                margin-top: 1px !important;
                 gap: 5px !important;
+                white-space: nowrap; /* 強制單行不折行 */
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .settings-dropdown {
                 position: absolute;
@@ -456,20 +468,22 @@
     <!-- Header 區塊 -->
     <header class="glass-header shadow-lg py-2">
         <div class="container-fluid px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-3 flex-wrap header-left-wrapper">
                 <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
-                <div class="border-start border-secondary ps-3">
-                    <h5 class="mb-0 fw-bold text-white">精選DM推薦</h5>
-                    <!-- 移入原頁尾的業務資訊與 LINE 按鈕 -->
+                <div class="border-start border-secondary ps-3 header-title-area">
+                    <div class="d-flex align-items-center gap-2 flex-nowrap">
+                        <h5 class="mb-0 fw-bold text-white text-nowrap">精選DM推薦</h5>
+                        <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-xs rounded-pill px-2 py-0 text-white text-decoration-none d-flex align-items-center gap-1" style="font-size: 0.72rem; line-height: 1.5; height: fit-content; white-space: nowrap;">
+                            <i class="fa-brands fa-line"></i>加 LINE
+                        </a>
+                    </div>
+                    <!-- 移入原頁尾的業務資訊 -->
                     <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
                         <span><i class="fa-solid fa-user text-warning me-1"></i>業務：陳彥百 (百百)</span>
                         <span class="d-none d-md-inline">|</span>
                         <span><i class="fa-solid fa-phone text-warning me-1"></i>手機：0917268665</span>
                         <span class="d-none d-md-inline">|</span>
                         <span>LINE ID：LAES62</span>
-                        <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-xs rounded-pill px-2 py-0 ms-1 text-white text-decoration-none" style="font-size: 0.72rem; line-height: 1.5; height:fit-content;">
-                            <i class="fa-brands fa-line me-1"></i>加 LINE
-                        </a>
                     </div>
                 </div>
             </div>
@@ -488,8 +502,8 @@
                         <div class="select-container">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
                             <select class="form-select custom-select w-100" id="effect-select" onchange="changeEffect(this.value)">
-                                <option value="coverflow" selected>3D 覆蓋流 (推薦)</option>
-                                <option value="slide">經典左右滑動</option>
+                                <option value="coverflow">3D 覆蓋流 (推薦)</option>
+                                <option value="slide" selected>經典左右滑動</option>
                                 <option value="fade">極簡淡入淡出</option>
                                 <option value="flip">3D 卡片翻轉</option>
                             </select>
@@ -511,8 +525,8 @@
                     <!-- 3. 播放模式 -->
                     <div class="mb-2 text-start">
                         <label class="form-label text-muted small mb-1">播放模式</label>
-                        <button id="sort-toggle-btn" class="btn btn-outline-light rounded-pill w-100 btn-sm d-flex align-items-center justify-content-center gap-2" onclick="toggleSortOrder()">
-                            <i class="fa-solid fa-arrow-down-1-9"></i> 順序播放
+                        <button id="sort-toggle-btn" class="btn btn-warning text-dark rounded-pill w-100 btn-sm d-flex align-items-center justify-content-center gap-2" onclick="toggleSortOrder()">
+                            <i class="fa-solid fa-shuffle"></i> 隨機播放
                         </button>
                     </div>
                 </div>
@@ -563,8 +577,8 @@
         let DISPLAY_TOURS = [];  // 當前已套用國家篩選並要顯示的行程資料
         let CLICKS_MAP = {};
         let swiperInstance = null;
-        let currentEffect = 'coverflow';
-        let isShuffle = false; // 是否開啟隨機模式
+        let currentEffect = 'slide'; // 預設改為經典左右滑動
+        let isShuffle = true; // 預設開啟隨機模式
         let currentCategory = 'all'; // 當前選取的國家分類
 
         // 帶有超時控制的 fetch 輔助函式，防止手機瀏覽器因跨網域請求掛起而一直轉圈圈
@@ -670,7 +684,10 @@
                                 // 過濾掉沒有 id 或標題的無效列
                                 ALL_TOURS = results.data.filter(item => item.id && item.title);
                                 ORIGINAL_TOURS = [...ALL_TOURS]; // 備份原始行程
-                                DISPLAY_TOURS = [...ALL_TOURS]; // 初始化為全部
+                                
+                                // 預設為隨機播放，所以在初始化時直接對 ALL_TOURS 進行隨機打亂
+                                ALL_TOURS = shuffleArray([...ORIGINAL_TOURS]);
+                                DISPLAY_TOURS = [...ALL_TOURS]; // 初始化為篩選來源
 
                                 if (ALL_TOURS.length === 0) {
                                     reject(new Error("試算表內沒有有效的行程資料。"));
