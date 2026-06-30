@@ -70,7 +70,7 @@
             -webkit-backdrop-filter: blur(8px);
         }
 
-        .effect-select {
+        .custom-select {
             background-color: rgba(18, 24, 32, 0.8) !important;
             color: white !important;
             border: 1px solid var(--border-glass) !important;
@@ -81,7 +81,7 @@
             outline: none;
         }
         
-        .effect-select:focus {
+        .custom-select:focus {
             box-shadow: 0 0 0 0.25rem rgba(243, 112, 33, 0.25);
             border-color: var(--primary-color) !important;
         }
@@ -118,7 +118,7 @@
             padding-bottom: 40px;
         }
 
-        /* DM 卡片樣式 - 還原為根據內容自然撐開高度 */
+        /* DM 卡片樣式 - 放大最大寬度限制 */
         .dm-card {
             background: var(--card-glass);
             backdrop-filter: blur(10px);
@@ -131,7 +131,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin: 0 auto;
             width: 100%;
-            max-width: 400px; /* 最大寬度調整至完美的 400px */
+            max-width: 450px; /* 最大寬度從 400px 放大至 450px 以配合大螢幕 */
             display: flex;
             flex-direction: column;
         }
@@ -360,30 +360,49 @@
     </div>
 
     <!-- Header 區塊 -->
-    <header class="glass-header shadow-lg">
-        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
-                <div class="d-none d-sm-block border-start border-secondary ps-3">
+    <header class="glass-header shadow-lg py-2">
+        <div class="container-fluid px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
+                <div class="border-start border-secondary ps-3">
                     <h5 class="mb-0 fw-bold text-white">精選DM推薦</h5>
+                    <!-- 移入原頁尾的業務資訊與 LINE 按鈕 -->
+                    <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
+                        <span><i class="fa-solid fa-user text-warning me-1"></i>業務：陳彥百 (百百)</span>
+                        <span class="d-none d-md-inline">|</span>
+                        <span><i class="fa-solid fa-phone text-warning me-1"></i>手機：0917268665</span>
+                        <span class="d-none d-md-inline">|</span>
+                        <span>LINE ID：0917268665</span>
+                        <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-xs rounded-pill px-2 py-0 ms-1 text-white text-decoration-none" style="font-size: 0.72rem; line-height: 1.5; height:fit-content;">
+                            <i class="fa-brands fa-line me-1"></i>加 LINE
+                        </a>
+                    </div>
                 </div>
             </div>
             
             <!-- 控制選項與導覽 -->
             <div class="d-flex align-items-center gap-3 flex-wrap justify-content-center">
-                <div class="control-panel d-flex align-items-center gap-3">
+                <div class="control-panel d-flex align-items-center gap-3 py-1 px-3">
+                    <!-- 特效選擇 -->
                     <div class="select-container">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <select class="form-select effect-select" id="effect-select" onchange="changeEffect(this.value)">
+                        <select class="form-select custom-select" id="effect-select" onchange="changeEffect(this.value)">
                             <option value="coverflow" selected>3D 覆蓋流 (推薦)</option>
                             <option value="slide">經典左右滑動</option>
                             <option value="fade">極簡淡入淡出</option>
                             <option value="flip">3D 卡片翻轉</option>
                         </select>
                     </div>
+                    <!-- 新增：國家分類選擇 -->
+                    <div class="select-container">
+                        <i class="fa-solid fa-earth-asia"></i>
+                        <select class="form-select custom-select" id="category-select" onchange="changeCategory(this.value)">
+                            <option value="all" selected>全部國家</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <!-- 新增：順序/隨機切換按鈕 -->
+                <!-- 順序/隨機切換按鈕 -->
                 <button id="sort-toggle-btn" class="btn btn-outline-light rounded-pill px-4 btn-sm d-flex align-items-center gap-2" onclick="toggleSortOrder()">
                     <i class="fa-solid fa-arrow-down-1-9"></i> 順序播放
                 </button>
@@ -407,17 +426,10 @@
         </div>
     </div>
 
-    <!-- 頁尾 -->
-    <footer class="text-center">
+    <!-- 頁尾 - 移除重複的業務大字資訊以釋放高度空間 -->
+    <footer class="text-center py-2">
         <div class="container">
-            <p class="mb-1 fw-bold text-white"><i class="fa-solid fa-phone-volume me-2 text-warning"></i>專屬旅遊業務：陳彥百 (百百)</p>
-            <p class="mb-2">手機：0917268665 | LINE ID：0917268665</p>
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-sm rounded-pill px-3">
-                    <i class="fa-brands fa-line me-1"></i> 加入 LINE 諮詢
-                </a>
-            </div>
-            <small class="d-block" style="color: #cbd5e1;">本網頁內容僅供同業與客戶參考，詳情請以業務正式回覆為準。版權所有 © 新魅力旅遊</small>
+            <small class="d-block" style="color: #cbd5e1; font-size: 0.8rem;">本網頁內容僅供同業與客戶參考，詳情請以業務正式回覆為準。版權所有 © 新魅力旅遊</small>
         </div>
     </footer>
 
@@ -438,10 +450,12 @@
 
         let ALL_TOURS = [];
         let ORIGINAL_TOURS = []; // 儲存原始行程順序的備份
+        let DISPLAY_TOURS = [];  // 當前已套用國家篩選並要顯示的行程資料
         let CLICKS_MAP = {};
         let swiperInstance = null;
         let currentEffect = 'coverflow';
         let isShuffle = false; // 是否開啟隨機模式
+        let currentCategory = 'all'; // 當前選取的國家分類
 
         // 帶有超時控制的 fetch 輔助函式，防止手機瀏覽器因跨網域請求掛起而一直轉圈圈
         function fetchWithTimeout(resource, options = {}) {
@@ -540,6 +554,7 @@
                                 // 過濾掉沒有 id 或標題的無效列
                                 ALL_TOURS = results.data.filter(item => item.id && item.title);
                                 ORIGINAL_TOURS = [...ALL_TOURS]; // 備份原始行程
+                                DISPLAY_TOURS = [...ALL_TOURS]; // 初始化為全部
 
                                 if (ALL_TOURS.length === 0) {
                                     reject(new Error("試算表內沒有有效的行程資料。"));
@@ -547,6 +562,7 @@
                                 }
 
                                 try {
+                                    buildCategorySelect(); // 動態建立分類下拉選單
                                     renderCarousel();
                                     hideLoading();
                                     resolve();
@@ -616,7 +632,18 @@
             const wrapper = document.getElementById('carousel-wrapper');
             wrapper.innerHTML = "";
 
-            ALL_TOURS.forEach((tour) => {
+            if (DISPLAY_TOURS.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="swiper-slide text-center text-white py-5">
+                        <i class="fa-solid fa-folder-open fa-3x mb-3 text-warning"></i>
+                        <h5>此分類下暫無任何行程 DM</h5>
+                    </div>
+                `;
+                buildSwiper(currentEffect);
+                return;
+            }
+
+            DISPLAY_TOURS.forEach((tour) => {
                 // 優先使用 preview 大小，以便輪播畫質清晰且不會太慢
                 const imgSrc = getResizedPath(tour.img, 'preview');
                 const clicks = CLICKS_MAP[tour.id] || 0;
@@ -785,27 +812,71 @@
             }
         }
 
+        // 新增：動態填充國家分類選單
+        function buildCategorySelect() {
+            const select = document.getElementById('category-select');
+            if (!select) return;
+
+            // 收集所有不重複的國家分類
+            const categories = new Set();
+            ORIGINAL_TOURS.forEach(tour => {
+                if (tour.category) {
+                    // 若分類包含逗號或頓號，視情況可切分，此處以 Excel 為準
+                    categories.add(tour.category.trim());
+                }
+            });
+
+            // 清空並重設
+            select.innerHTML = '<option value="all" selected>全部國家</option>';
+
+            // 排序後加入選項
+            Array.from(categories).sort().forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                select.appendChild(opt);
+            });
+        }
+
+        // 新增：切換國家分類選單
+        function changeCategory(val) {
+            currentCategory = val;
+            applyFilters();
+        }
+
+        // 新增：套用國家篩選邏輯
+        function applyFilters() {
+            if (currentCategory === 'all') {
+                DISPLAY_TOURS = [...ALL_TOURS];
+            } else {
+                DISPLAY_TOURS = ALL_TOURS.filter(tour => tour.category && tour.category.includes(currentCategory));
+            }
+
+            // 重新渲染輪播
+            renderCarousel();
+        }
+
         // 新增：切換順序/隨機播放邏輯
         function toggleSortOrder() {
             const btn = document.getElementById('sort-toggle-btn');
             isShuffle = !isShuffle;
 
             if (isShuffle) {
-                // 隨機播放：打亂陣列
+                // 隨機播放：打亂原始備份陣列
                 ALL_TOURS = shuffleArray([...ORIGINAL_TOURS]);
                 btn.innerHTML = `<i class="fa-solid fa-shuffle me-1"></i>隨機播放`;
                 btn.classList.replace('btn-outline-light', 'btn-warning');
                 btn.classList.add('text-dark');
             } else {
-                // 順序播放：還原備份
+                // 順序播放：還原原始備份陣列
                 ALL_TOURS = [...ORIGINAL_TOURS];
                 btn.innerHTML = `<i class="fa-solid fa-arrow-down-1-9 me-1"></i>順序播放`;
                 btn.classList.replace('btn-warning', 'btn-outline-light');
                 btn.classList.remove('text-dark');
             }
 
-            // 重新渲染輪播
-            renderCarousel();
+            // 套用分類篩選並重新渲染
+            applyFilters();
         }
 
         // 經典 Fisher-Yates 隨機打亂演算法
