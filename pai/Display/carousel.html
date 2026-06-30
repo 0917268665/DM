@@ -99,7 +99,7 @@
             pointer-events: none;
         }
 
-        /* Swiper 容器樣式與 16:9/9:16 比例控制 */
+        /* Swiper 容器樣式與 16:9/9:16 比例控制 - 拓寬左右寬度 */
         .swiper-container-wrapper {
             position: relative;
             flex-grow: 1;
@@ -107,8 +107,8 @@
             align-items: center;
             justify-content: center;
             padding: 10px 0;
-            width: 100%;
-            max-width: 1100px;
+            width: 95%; /* 寬度佔滿 95% */
+            max-width: 1400px; /* 最大寬度提升至 1400px */
             margin: 0 auto;
             aspect-ratio: 16 / 9; /* 橫向強制 16:9 */
         }
@@ -120,7 +120,7 @@
             padding-bottom: 25px;
         }
 
-        /* DM 卡片樣式 - 填滿輪播高度 */
+        /* DM 卡片樣式 - 放大最大寬度限制 */
         .dm-card {
             background: var(--card-glass);
             backdrop-filter: blur(10px);
@@ -132,7 +132,8 @@
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin: 0 auto;
-            max-width: 380px;
+            width: 100%;
+            max-width: 420px; /* 最大寬度從 380px 放大至 420px */
             display: flex;
             flex-direction: column;
             height: 100%; /* 填滿 Swiper 容器 */
@@ -665,7 +666,7 @@
                     },
                     768: {
                         slidesPerView: 3,
-                        spaceBetween: 30
+                        spaceBetween: 20 /* 間距從 30 縮減至 20，讓卡片更緊湊，留白更少 */
                     }
                 };
 
