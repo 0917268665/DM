@@ -694,10 +694,6 @@
                 }
             };
 
-            // 特效適配：Slide & Coverflow 可在大螢幕下多卡並列
-            const multiSlideEffects = ['slide', 'coverflow'];
-            const isMulti = multiSlideEffects.includes(effectName);
-
             if (isMulti) {
                 swiperConfig.breakpoints = {
                     320: {
