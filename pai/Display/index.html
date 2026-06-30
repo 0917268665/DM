@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>世興DM、行程下載</title>
+    
+    <meta property="og:title" content="世興DM、行程下載專區">
+    <meta property="og:description" content="由專屬業務陳彥百服務：提供最新旅遊行程DM、Word行程表下載，以及售價查詢。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/pai/">
+    <meta property="og:type" content="website">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: "Microsoft JhengHei", sans-serif; }
+        .custom-header { background-color: #f37021; padding-top: 10px; padding-bottom: 15px; }
+        .header-logo-container { width: 100%; text-align: center; margin-bottom: 10px; padding: 0 15px; }
+        .header-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; }
+        .header-title { font-size: 1.5rem; font-weight: bold; color: white; }
+        .header-info { color: white; font-size: 0.9rem; line-height: 1.3; text-align: right; }
+        
+        .tour-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; background: white; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .tour-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .dm-container { width: 100%; aspect-ratio: 210 / 297; background-color: #f8f9fa; position: relative; border-bottom: 1px solid #eee; }
+        .dm-img { width: 100%; height: 100%; object-fit: contain; }
+        
+        /* 分類按鈕滑動區塊樣式 */
+        .category-scroll-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 5px;
+            -webkit-overflow-scrolling: touch; /* 讓手機滑動更順暢 */
+            scrollbar-width: none; /* Firefox 隱藏捲軸 */
+        }
+        .category-scroll-container::-webkit-scrollbar { display: none; /* Chrome 隱藏捲軸 */ }
+        
+        .cat-btn {
+            display: inline-block;
+            margin-right: 8px;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.95rem;
+            border: 1px solid #f37021;
+            background-color: white;
+            color: #f37021;
+            transition: all 0.3s;
+        }
+        .cat-btn.active, .cat-btn:hover {
+            background-color: #f37021;
+            color: white;
+        }
+
+        .modal-header { background: #2c3e50; color: white; }
+        .commission-box { display: none; background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px; }
+        .warning-modal-header { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+
+<header class="custom-header shadow-sm mb-3">
+    <div class="header-logo-container">
+        <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo">
+    </div>
+    
+    <div class="container">
+        <!-- 第一列：標題與聯絡資訊 -->
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div class="header-title">
+                ✈️ 直售DM行程下載
+            </div>
+            
+            <div class="header-info d-flex align-items-center">
+                <div class="me-2">
+                    <div>業務：陳彥百(百百)</div>
+                    <div>手機：0917268665</div>
+                </div>
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" height="36">
+                </a>
+            </div>
+        </div>
+
+        <!-- 第二列：功能按鈕 (左右平分) -->
+        <div class="d-flex gap-2 mb-2">
+            <a href="https://0917268665.github.io/DM/pai/maker.html" class="btn btn-light text-danger fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                ✨ 點我前往貼標神器
+            </a>
+            <a href="https://0917268665.github.io/DM/pai/content.html" class="btn btn-light text-primary fw-bold shadow-sm flex-fill py-2" style="border-radius: 50px;">
+                📝 點我前往文案小幫手
+            </a>
+        </div>
+        
+        <!-- 新增：前往 3D 互動輪播 DM 專區的入口按鈕 -->
+        <div class="d-grid mb-1">
+            <a href="carousel.html" class="btn btn-warning text-dark fw-bold shadow-sm py-2" style="border-radius: 50px;">
+                🎪 點我前往【3D互動輪播DM專區】🔥
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="container sticky-top bg-white shadow-sm py-2 mb-4" style="z-index: 100; border-radius: 0 0 15px 15px;">
+    <div class="category-scroll-container" id="category-container">
+        <button class="btn cat-btn active" onclick="filterCategory('all', this)">全部</button>
+        <button class="btn cat-btn" onclick="filterCategory('日本', this)">日本</button>
+        <button class="btn cat-btn" onclick="filterCategory('韓國', this)">韓國</button>
+        <button class="btn cat-btn" onclick="filterCategory('中國大陸', this)">中國大陸</button>
+        <button class="btn cat-btn" onclick="filterCategory('泰國', this)">泰國</button>
+        <button class="btn cat-btn" onclick="filterCategory('越南', this)">越南</button>
+        <button class="btn cat-btn" onclick="filterCategory('馬來西亞', this)">馬來西亞</button>
+        <button class="btn cat-btn" onclick="filterCategory('菲律賓', this)">菲律賓</button>
+        <button class="btn cat-btn" onclick="filterCategory('印尼', this)">印尼</button>
+        <button class="btn cat-btn" onclick="filterCategory('新加坡', this)">新加坡</button>
+        <button class="btn cat-btn" onclick="filterCategory('汶萊', this)">汶萊</button>
+        <button class="btn cat-btn" onclick="filterCategory('港澳', this)">港澳</button>
+        <button class="btn cat-btn" onclick="filterCategory('歐洲', this)">歐洲</button>
+        <button class="btn cat-btn" onclick="filterCategory('紐澳', this)">紐澳</button>
+        <button class="btn cat-btn" onclick="filterCategory('中東.中亞.非洲', this)">中東.中亞.非洲</button>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4" id="tour-list">
+        <!-- 內容由 JS 產生 -->
+    </div>
+</div>
+
+<div class="modal fade" id="warningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header warning-modal-header">
+                <h5 class="modal-title fw-bold">⚠️ 網站使用聲明</h5>
+            </div>
+            <div class="modal-body fs-6">
+                <p>感謝您使用本網站，本網站內容由業務維護，已盡力維持資訊正確性，但可能還是會有疏漏與勘誤。</p>
+                <p>同業夥伴請先與業務-百百聯繫。</p>
+                <p class="mb-0 fw-bold">網站內容僅供參考，請以業務回覆為準，謝謝！</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary w-50" data-bs-dismiss="modal">好，我了解</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="m-title">行程名稱</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <small class="text-muted">行程編號</small>
+                        <div class="fw-bold fs-5 text-primary" id="m-id">--</div>
+                    </div>
+                    <div class="col-md-8 mt-2 mt-md-0">
+                        <!-- 修改：按鈕樣式改為空心，顏色：[Word:藍] [DM:紅] [貼標:綠] -->
+                        <div class="d-flex justify-content-md-end gap-2 flex-wrap">
+                            <a id="m-doc" href="#" class="btn btn-outline-primary shadow-sm">
+                                📥 下載 Word
+                            </a>
+                            <a id="m-dm-download" href="#" target="_blank" class="btn btn-outline-danger shadow-sm">
+                                📥 下載 DM
+                            </a>
+                            <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-outline-success shadow-sm">
+                                🎨 前往貼標神器
+                            </a>
+                        </div>
+                        <div class="text-end mt-1">
+                            <small class="text-muted" style="font-size: 0.8rem;">(如需合成您的logo底標，請前往貼標神器)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary" role="alert">
+                    <strong>📝 備註：</strong> <span id="m-remark">無</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                    <span class="text-muted small">同業專區</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="unlockCommission()">
+                        🔒 查看NET
+                    </button>
+                </div>
+                <div id="m-commission-box" class="commission-box text-center fw-bold">
+                    NET：<span id="m-commission" class="fs-5 text-danger"></span>
+                </div>
+
+                <hr>
+
+                <h5 class="mt-3">📄 DM 預覽</h5>
+                <div class="text-center mb-3 p-2 bg-light border">
+                    <img id="m-preview-img" src="" class="img-fluid" style="max-height: 400px;" alt="DM預覽">
+                </div>
+
+                <h5 class="mt-4 mb-3 border-start border-4 border-primary ps-2">📅 出發日與售價</h5>
+                <div class="d-grid gap-2">
+                    <a id="m-official-link" href="#" target="_blank" class="btn btn-primary btn-lg shadow-sm">
+                        👉 前往官網查看最新出發日與售價
+                    </a>
+                    <small class="text-muted text-center">點擊將開啟公司官網行程頁面，查看詳細出發日與售價</small>
+                </div>
+                <div class="mb-4"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 設定區
+    const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
+
+    // 輔助函式：連結處理
+    function convertToDirectLink(url, isImage = false) {
+        if (!url) return "#";
+        if (url.startsWith("http") && url.includes("drive.google.com")) {
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                return isImage 
+                    ? `https://drive.google.com/uc?export=view&id=${match[1]}`
+                    : `https://docs.google.com/uc?export=download&id=${match[1]}`;
+            }
+        }
+        return url; 
+    }
+
+    // 強制轉換函式 (_m 縮圖)
+    function getResizedPath(originalPath, size) {
+        if (!originalPath || originalPath.startsWith("http")) return convertToDirectLink(originalPath, true);
+        if (size === 'original') return originalPath;
+        if (originalPath.toLowerCase().endsWith(".jpg")) {
+            return originalPath.replace(/.jpg$/i, "_m.jpg");
+        }
+        if (originalPath.toLowerCase().endsWith(".png")) {
+            return originalPath.replace(/.png$/i, "_m.png");
+        }
+        return originalPath;
+    }
+
+    const tourList = document.getElementById('tour-list');
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
+    
+    // 定義全域變數
+    let ALL_TOURS = []; // 存放所有資料
+    let DISPLAY_TOURS = []; // 存放目前要顯示的資料 (篩選後)
+
+    document.addEventListener("DOMContentLoaded", function() {
+        warningModal.show();
+        fetchData();
+    });
+
+    // 改用 fetch() 先抓取資料，再交給 PapaParse 解析
+    function fetchData() {
+        fetch(googleSheetUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("網路回應不正常");
+                }
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true, // 自動跳過空行
+                    complete: function(results) {
+                        // 讀取資料並過濾無效列
+                        ALL_TOURS = results.data.filter(item => item.id && item.title);
+                        // 一開始預設顯示全部
+                        DISPLAY_TOURS = ALL_TOURS;
+                        renderTours();
+                    },
+                    error: function(err) {
+                         console.error("CSV 解析錯誤:", err);
+                         tourList.innerHTML = `<div class="alert alert-danger">無法解析行程資料，請稍後再試。</div>`;
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("讀取 Excel 失敗:", error);
+                tourList.innerHTML = `<div class="alert alert-danger">無法讀取行程資料，請檢查網路或連結。</div>`;
+            });
+    }
+
+    // ★ 新增功能：分類篩選邏輯
+    function filterCategory(category, btnElement) {
+        // 1. 處理按鈕樣式 (Active)
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        // 2. 篩選資料
+        if (category === 'all') {
+            DISPLAY_TOURS = ALL_TOURS;
+        } else {
+            // 檢查 Excel 中的 category 欄位是否包含該分類文字
+            DISPLAY_TOURS = ALL_TOURS.filter(tour => {
+                return tour.category && tour.category.includes(category);
+            });
+        }
+
+        // 3. 重新渲染列表
+        renderTours();
+    }
+
+    function renderTours() {
+        tourList.innerHTML = "";
+
+        if (DISPLAY_TOURS.length === 0) {
+            tourList.innerHTML = `<div class="col-12 text-center text-muted py-5">此分類暫無行程</div>`;
+            return;
+        }
+
+        DISPLAY_TOURS.forEach((tour) => {
+            const originalIndex = ALL_TOURS.indexOf(tour);
+            const thumbSrc = getResizedPath(tour.img, 'thumb');
+            const col = document.createElement('div');
+            col.className = 'col-lg-3 col-md-4 col-sm-6'; 
+            
+            col.innerHTML = `
+                <div class="tour-card h-100" onclick="openTour(${originalIndex})">
+                    <div class="dm-container">
+                        <img src="${thumbSrc}" class="dm-img" alt="${tour.title}">
+                    </div>
+                    <div class="card-body p-3 d-flex flex-column">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="text-secondary mb-1 small">${tour.id}</h6>
+                            <small class="text-white bg-secondary px-2 rounded-pill" style="font-size: 0.7rem; height:fit-content;">${tour.category || '精選'}</small>
+                        </div>
+                        <h6 class="card-title fw-bold mb-2 text-truncate">${tour.title}</h6>
+                        <small class="text-muted d-block text-truncate mb-3">${tour.remark}</small>
+                        <div class="mt-auto">
+                            <button class="btn btn-primary w-100 shadow-sm">查看詳情</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            tourList.appendChild(col);
+        });
+    }
+
+    let currentTour = null;
+
+    function openTour(index) {
+        currentTour = ALL_TOURS[index];
+        
+        document.getElementById('m-title').innerText = currentTour.title;
+        document.getElementById('m-id').innerText = currentTour.id;
+        document.getElementById('m-remark').innerText = currentTour.remark;
+
+        const previewSrc = getResizedPath(currentTour.img, 'preview');
+        const previewImg = document.getElementById('m-preview-img');
+        previewImg.src = previewSrc;
+        // 確保預覽圖若讀取失敗，會顯示原圖
+        previewImg.onerror = function() {
+            this.onerror = null; // 防止無窮迴圈
+            this.src = currentTour.img;
+        };
+        
+        const originalSrc = getResizedPath(currentTour.img, 'original');
+        const dmBtn = document.getElementById('m-dm-download');
+        dmBtn.href = originalSrc;
+        dmBtn.setAttribute("target", "_blank");
+
+        const docBtn = document.getElementById('m-doc');
+        docBtn.href = convertToDirectLink(currentTour.doc_link, false);
+        docBtn.setAttribute("target", "_blank");
+        if(currentTour.doc_link.startsWith("./") || currentTour.doc_link.startsWith("../")) {
+             docBtn.setAttribute("download", ""); 
+        }
+
+        document.getElementById('m-commission-box').style.display = 'none';
+        document.getElementById('m-commission').innerText = currentTour.commission;
+
+        const officialBtn = document.getElementById('m-official-link');
+        if (currentTour.company_prod_no) {
+            officialBtn.href = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${currentTour.company_prod_no}`;
+            officialBtn.classList.remove('disabled');
+            officialBtn.innerText = "👉 前往官網查看最新出發日與售價";
+        } else {
+            officialBtn.href = "#";
+            officialBtn.classList.add('disabled');
+            officialBtn.innerText = "未設定官網連結";
+        }
+        
+        modal.show();
+    }
+
+    function unlockCommission() {
+        const pwd = prompt("請輸入內部密碼：");
+        if (pwd === "7994") { 
+            document.getElementById('m-commission-box').style.display = 'block';
+        } else if (pwd !== null) { alert("密碼錯誤"); }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直售DM 3D互動輪播專區</title>
+    
+    <meta property="og:title" content="世興DM 3D互動輪播專區">
+    <meta property="og:description" content="由專屬業務陳彥百服務：提供最新旅遊行程 3D 動態輪播展示與官網連結。">
+    <meta property="og:image" content="https://0917268665.github.io/DM/logo.png">
+    <meta property="og:url" content="https://0917268665.github.io/DM/pai/Display/carousel.html">
+    <meta property="og:type" content="website">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Swiper.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <style>
+        :root {
+            --primary-color: #f37021;
+            --dark-bg: #121820;
+            --card-glass: rgba(255, 255, 255, 0.08);
+            --card-glass-hover: rgba(255, 255, 255, 0.15);
+            --border-glass: rgba(255, 255, 255, 0.15);
+            --border-glass-hover: rgba(255, 255, 255, 0.3);
+            --text-light: #f8f9fa;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, #1e2836 0%, var(--dark-bg) 100%);
+            color: var(--text-light);
+            font-family: "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 磨砂玻璃效果的 Header */
+        .glass-header {
+            background: rgba(18, 24, 32, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-logo {
+            max-height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            border-radius: 50px;
+            padding: 8px 24px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .effect-select {
+            background-color: rgba(18, 24, 32, 0.8) !important;
+            color: white !important;
+            border: 1px solid var(--border-glass) !important;
+            border-radius: 20px;
+            padding: 5px 15px 5px 35px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .effect-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(243, 112, 33, 0.25);
+            border-color: var(--primary-color) !important;
+        }
+
+        .select-container {
+            position: relative;
+        }
+
+        .select-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            pointer-events: none;
+        }
+
+        /* Swiper 容器樣式 */
+        .swiper-container-wrapper {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .swiper {
+            width: 100%;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        /* DM 卡片樣式 */
+        .dm-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* 3D 懸停效果僅在非觸控裝置上生效 */
+        @media (hover: hover) {
+            .dm-card:hover {
+                transform: translateY(-10px) scale(1.02);
+                background: var(--card-glass-hover);
+                border-color: var(--border-glass-hover);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        .dm-image-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 210 / 297; /* A4 比例 */
+            background-color: rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .dm-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+        .dm-card:hover .dm-img {
+            transform: scale(1.03);
+        }
+
+        /* 點擊數 Badge 貼紙 */
+        .click-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(243, 112, 33, 0.95);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            backdrop-filter: blur(4px);
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .card-info {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .dm-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: white;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 3.2rem;
+        }
+
+        .dm-meta {
+            font-size: 0.8rem;
+            color: #b0c0d0;
+            margin-bottom: 15px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #f37021 0%, #ff8e42 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.5);
+            background: linear-gradient(135deg, #ff8e42 0%, #f37021 100%);
+        }
+
+        /* Swiper 導覽按鈕美化 */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--primary-color) !important;
+            background: rgba(255, 255, 255, 0.05);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 1.25rem !important;
+            font-weight: bold;
+        }
+
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background: rgba(243, 112, 33, 0.2);
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .swiper-pagination-bullet {
+            background: rgba(255, 255, 255, 0.3) !important;
+            width: 10px;
+            height: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .swiper-pagination-bullet-active {
+            background: var(--primary-color) !important;
+            width: 24px;
+            border-radius: 5px;
+        }
+
+        /* 頁尾資訊 */
+        footer {
+            background: rgba(18, 24, 32, 0.9);
+            border-top: 1px solid var(--border-glass);
+            padding: 20px 0;
+            font-size: 0.85rem;
+            color: #8c9ba5;
+        }
+
+        /* 載入中動畫 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 橫向與直向螢幕自適應修正 */
+        @media (max-width: 767.98px) {
+            .swiper-button-next, .swiper-button-prev {
+                display: none !important; /* 手機版隱藏左右箭頭，直接手勢滑動 */
+            }
+            .glass-header .header-logo {
+                max-height: 35px;
+            }
+            .header-info-mini {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 載入中遮罩 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <h5>正在抓取最新 DM 行程...</h5>
+    </div>
+
+    <!-- Header 區塊 -->
+    <header class="glass-header shadow-lg">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="../logo.png" alt="新魅力旅遊 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
+                <div class="d-none d-sm-block border-start border-secondary ps-3">
+                    <h5 class="mb-0 fw-bold text-white">直售 DM 輪播</h5>
+                    <small class="text-muted">業務：陳彥百 (百百)</small>
+                </div>
+            </div>
+            
+            <!-- 控制選項與導覽 -->
+            <div class="d-flex align-items-center gap-3 flex-wrap justify-content-center">
+                <div class="control-panel d-flex align-items-center gap-3">
+                    <div class="select-container">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <select class="form-select effect-select" id="effect-select" onchange="changeEffect(this.value)">
+                            <option value="coverflow" selected>3D 覆蓋流 (推薦)</option>
+                            <option value="slide">經典左右滑動</option>
+                            <option value="fade">極簡淡入淡出</option>
+                            <option value="flip">3D 卡片翻轉</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <a href="index.html" class="btn btn-outline-light rounded-pill px-4 btn-sm d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-list-ul"></i> 列表模式
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 輪播主區塊 -->
+    <div class="swiper-container-wrapper container">
+        <div class="swiper">
+            <div class="swiper-wrapper" id="carousel-wrapper">
+                <!-- 資料動態生成 -->
+            </div>
+            
+            <!-- 分頁點 (Dots) -->
+            <div class="swiper-pagination"></div>
+            
+            <!-- 導覽按鈕 (Arrows) -->
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-1 fw-bold text-white"><i class="fa-solid fa-phone-volume me-2 text-warning"></i>專屬旅遊業務：陳彥百 (百百)</p>
+            <p class="mb-2">手機：0917268665 | LINE ID：0917268665</p>
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-sm rounded-pill px-3">
+                    <i class="fa-brands fa-line me-1"></i> 加入 LINE 諮詢
+                </a>
+                <a href="https://0917268665.github.io/DM/pai/maker.html" target="_blank" class="btn btn-warning btn-sm rounded-pill px-3 text-dark fw-bold">
+                    <i class="fa-solid fa-paintbrush me-1"></i> 前往貼標神器
+                </a>
+            </div>
+            <small class="d-block text-muted">本網頁內容僅供同業與客戶參考，詳情請以業務正式回覆為準。版權所有 © 新魅力旅遊</small>
+        </div>
+    </footer>
+
+    <!-- JS 庫引入 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 設定區
+        // ==========================================
+        const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcPCobeix2WBU69fxSbx9IKFJpPtP04dutrcHp-KV8L1vnAEcUErx-x0zfGbBBYaUWtzgR-ZZR6W6B/pub?output=csv";
+        
+        // 請在此填入您的 Google Apps Script 部署網址以啟動全域點擊統計
+        // 格式如：https://script.google.com/macros/s/AKfycbz.../exec
+        const gasApiUrl = ""; 
+
+        let ALL_TOURS = [];
+        let CLICKS_MAP = {};
+        let swiperInstance = null;
+        let currentEffect = 'coverflow';
+
+        // 頁面載入完成
+        document.addEventListener("DOMContentLoaded", function() {
+            initApp();
+        });
+
+        // 初始化應用程式
+        async function initApp() {
+            try {
+                // 1. 抓取全域點擊次數 (若有設定 API)
+                await fetchGlobalClicks();
+                // 2. 抓取行程 CSV
+                await fetchSheetData();
+            } catch (error) {
+                console.error("初始化失敗:", error);
+                document.getElementById('loading-overlay').innerHTML = `
+                    <div class="container text-center text-white py-5">
+                        <i class="fa-solid fa-triangle-exclamation fa-3x text-danger mb-3"></i>
+                        <h4>載入行程資料時發生錯誤</h4>
+                        <p class="text-muted">${error.message}</p>
+                        <button class="btn btn-warning rounded-pill mt-3" onclick="location.reload()">重新整理</button>
+                    </div>
+                `;
+            }
+        }
+
+        // 讀取全域點擊數
+        async function fetchGlobalClicks() {
+            if (!gasApiUrl) {
+                // 若無設定 API，從 localStorage 抓取本地紀錄作為替代
+                try {
+                    const localClicks = localStorage.getItem('dm_clicks_fallback');
+                    if (localClicks) {
+                        CLICKS_MAP = JSON.parse(localClicks);
+                    }
+                } catch(e) {
+                    console.error("無法讀取 LocalStorage", e);
+                }
+                return;
+            }
+
+            try {
+                // 加上 timestamp 防止快取
+                const response = await fetch(`${gasApiUrl}?action=getAll&t=${new Date().getTime()}`);
+                if (response.ok) {
+                    const json = await response.json();
+                    if (json.status === "success" && json.data) {
+                        CLICKS_MAP = json.data;
+                    }
+                }
+            } catch (err) {
+                console.warn("無法取得伺服器點擊統計，將降級為本地紀錄:", err);
+                // 降級載入本地紀錄
+                const localClicks = localStorage.getItem('dm_clicks_fallback');
+                if (localClicks) CLICKS_MAP = JSON.parse(localClicks);
+            }
+        }
+
+        // 抓取 Google 試算表 CSV
+        function fetchSheetData() {
+            return new Promise((resolve, reject) => {
+                fetch(googleSheetUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error("Google Sheet 網路回應異常");
+                        return response.text();
+                    })
+                    .then(csvText => {
+                        Papa.parse(csvText, {
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: function(results) {
+                                // 過濾掉沒有 id 或標題的無效列
+                                ALL_TOURS = results.data.filter(item => item.id && item.title);
+                                
+                                if (ALL_TOURS.length === 0) {
+                                    reject(new Error("試算表內沒有有效的行程資料。"));
+                                    return;
+                                }
+
+                                renderCarousel();
+                                hideLoading();
+                                resolve();
+                            },
+                            error: function(err) {
+                                reject(new Error("CSV 解析失敗: " + err.message));
+                            }
+                        });
+                    })
+                    .catch(err => {
+                        reject(err);
+                    });
+            });
+        }
+
+        // 隱藏載入中遮罩
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = 0;
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        // 輔助：轉換 Google Drive 圖片連結與 resizing
+        function convertToDirectLink(url, isImage = false) {
+            if (!url) return "#";
+            if (url.startsWith("http") && url.includes("drive.google.com")) {
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    return isImage 
+                        ? `https://drive.google.com/uc?export=view&id=${match[1]}`
+                        : `https://docs.google.com/uc?export=download&id=${match[1]}`;
+                }
+            }
+            return url; 
+        }
+
+        function getResizedPath(originalPath, size) {
+            if (!originalPath || originalPath.startsWith("http")) return convertToDirectLink(originalPath, true);
+            if (size === 'original') return originalPath;
+            if (originalPath.toLowerCase().endsWith(".jpg")) {
+                return originalPath.replace(/.jpg$/i, "_m.jpg");
+            }
+            if (originalPath.toLowerCase().endsWith(".png")) {
+                return originalPath.replace(/.png$/i, "_m.png");
+            }
+            return originalPath;
+        }
+
+        // 渲染輪播 HTML
+        function renderCarousel() {
+            const wrapper = document.getElementById('carousel-wrapper');
+            wrapper.innerHTML = "";
+
+            ALL_TOURS.forEach((tour) => {
+                // 優先使用 preview 大小，以便輪播畫質清晰且不會太慢
+                const imgSrc = getResizedPath(tour.img, 'preview');
+                const clicks = CLICKS_MAP[tour.id] || 0;
+                
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                
+                // 建立卡片 HTML
+                slide.innerHTML = `
+                    <div class="dm-card" onclick="handleCardClick('${tour.id}', '${tour.title.replace(/'/g, "\\'")}', '${tour.company_prod_no}')">
+                        <div class="dm-image-wrapper">
+                            <span class="click-badge" id="badge-${tour.id}">
+                                <i class="fa-solid fa-fire text-warning"></i> 關注 ${clicks} 次
+                            </span>
+                            <span class="category-badge">
+                                ${tour.category || '精選'}
+                            </span>
+                            <img src="${imgSrc}" class="dm-img" alt="${tour.title}" loading="lazy">
+                        </div>
+                        <div class="card-info">
+                            <div class="dm-title">${tour.title}</div>
+                            <div class="dm-meta text-muted">
+                                <span><i class="fa-solid fa-hashtag me-1"></i>${tour.id}</span>
+                                ${tour.remark ? ` | <span class="ms-1">${tour.remark}</span>` : ''}
+                            </div>
+                            <button class="action-btn">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> 前往官網看售價
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                wrapper.appendChild(slide);
+            });
+
+            // 初始化 Swiper 實例
+            buildSwiper(currentEffect);
+        }
+
+        // 建立或重置 Swiper
+        function buildSwiper(effectName) {
+            if (swiperInstance) {
+                swiperInstance.destroy(true, true);
+            }
+
+            const swiperConfig = {
+                effect: effectName,
+                grabCursor: true,
+                centeredSlides: true,
+                loop: true,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                    dynamicBullets: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                }
+            };
+
+            // 特效適配：Slide & Coverflow 可在大螢幕下多卡並列
+            const multiSlideEffects = ['slide', 'coverflow'];
+            const isMulti = multiSlideEffects.includes(effectName);
+
+            if (isMulti) {
+                swiperConfig.breakpoints = {
+                    320: {
+                        slidesPerView: 1,
+                        spaceBetween: 15
+                    },
+                    768: {
+                        slidesPerView: 3,
+                        spaceBetween: 30
+                    }
+                };
+
+                if (effectName === 'coverflow') {
+                    swiperConfig.coverflowEffect = {
+                        rotate: 15,
+                        stretch: 0,
+                        depth: 120,
+                        modifier: 1.3,
+                        slideShadows: true,
+                    };
+                }
+            } else {
+                // Fade / Flip 在 Swiper 規定下一次只適合展示 1 張，否則會重疊跑版
+                swiperConfig.slidesPerView = 1;
+                swiperConfig.spaceBetween = 0;
+
+                if (effectName === 'fade') {
+                    swiperConfig.fadeEffect = {
+                        crossFade: true
+                    };
+                } else if (effectName === 'flip') {
+                    swiperConfig.flipEffect = {
+                        slideShadows: true,
+                        limitRotation: true
+                    };
+                }
+            }
+
+            swiperInstance = new Swiper('.swiper', swiperConfig);
+        }
+
+        // 切換輪播特效
+        function changeEffect(val) {
+            currentEffect = val;
+            buildSwiper(val);
+        }
+
+        // 卡片點擊事件處理（計數並跳轉）
+        function handleCardClick(prodId, title, prodNo) {
+            // 1. 觸發點擊記錄
+            trackClickEvent(prodId, title);
+
+            // 2. 官網跳轉
+            if (prodNo) {
+                const officialUrl = `https://www.newamazing.com.tw/EW/GO/MGroupDetail.asp?prodCd=${prodNo}`;
+                window.open(officialUrl, '_blank');
+            } else {
+                alert("此行程暫無官網詳細頁面連結。");
+            }
+        }
+
+        // 異步發送計數請求給 GAS 或本地存儲
+        function trackClickEvent(prodId, title) {
+            // 優先更新前端介面（讓使用者點擊時有即時回饋，不需要等網路回傳）
+            const badge = document.getElementById(`badge-${prodId}`);
+            if (badge) {
+                const currentCount = CLICKS_MAP[prodId] || 0;
+                const newCount = currentCount + 1;
+                CLICKS_MAP[prodId] = newCount;
+                badge.innerHTML = `<i class="fa-solid fa-fire text-warning"></i> 關注 ${newCount} 次`;
+            }
+
+            // 更新 LocalStorage Fallback 
+            try {
+                const fallbackClicks = localStorage.getItem('dm_clicks_fallback') || "{}";
+                const fallbackMap = JSON.parse(fallbackClicks);
+                fallbackMap[prodId] = (fallbackMap[prodId] || 0) + 1;
+                localStorage.setItem('dm_clicks_fallback', JSON.stringify(fallbackMap));
+            } catch(e) {
+                console.error("LocalStorage 更新失敗", e);
+            }
+
+            // 如果有設定 GAS API，發送請求到後端 Google 試算表
+            if (gasApiUrl) {
+                const apiUrl = `${gasApiUrl}?prod_id=${encodeURIComponent(prodId)}&title=${encodeURIComponent(title)}&t=${new Date().getTime()}`;
+                
+                // 使用 fetch 進行背景非同步傳送
+                fetch(apiUrl, { mode: 'no-cors' })
+                    .then(() => {
+                        console.log(`GAS: 已成功紀錄點擊 - ${prodId}`);
+                    })
+                    .catch(err => {
+                        console.warn("GAS API 連線失敗:", err);
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
