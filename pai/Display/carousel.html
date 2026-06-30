@@ -553,14 +553,21 @@
 
         function getResizedPath(originalPath, size) {
             if (!originalPath || originalPath.startsWith("http")) return convertToDirectLink(originalPath, true);
-            if (size === 'original') return originalPath;
-            if (originalPath.toLowerCase().endsWith(".jpg")) {
-                return originalPath.replace(/.jpg$/i, "_m.jpg");
+            
+            // 自動修正路徑：如果當前頁面位於 Display 目錄下，且圖片路徑以 ../ 開頭
+            let fixedPath = originalPath;
+            if (window.location.pathname.includes('/Display/') && fixedPath.startsWith('../')) {
+                fixedPath = '../' + fixedPath; // 將 ../ 變為 ../../ 以退回兩層
             }
-            if (originalPath.toLowerCase().endsWith(".png")) {
-                return originalPath.replace(/.png$/i, "_m.png");
+            
+            if (size === 'original') return fixedPath;
+            if (fixedPath.toLowerCase().endsWith(".jpg")) {
+                return fixedPath.replace(/.jpg$/i, "_m.jpg");
             }
-            return originalPath;
+            if (fixedPath.toLowerCase().endsWith(".png")) {
+                return fixedPath.replace(/.png$/i, "_m.png");
+            }
+            return fixedPath;
         }
 
         // 渲染輪播 HTML
@@ -580,12 +587,6 @@
                 slide.innerHTML = `
                     <div class="dm-card" onclick="handleCardClick('${tour.id}', '${tour.title.replace(/'/g, "\\'")}', '${tour.company_prod_no}')">
                         <div class="dm-image-wrapper">
-                            <span class="click-badge" id="badge-${tour.id}">
-                                <i class="fa-solid fa-fire text-warning"></i> 關注 ${clicks} 次
-                            </span>
-                            <span class="category-badge">
-                                ${tour.category || '精選'}
-                            </span>
                             <img src="${imgSrc}" class="dm-img" alt="${tour.title}" loading="lazy">
                         </div>
                         <div class="card-info">
@@ -593,6 +594,9 @@
                             <div class="dm-meta text-muted">
                                 <span><i class="fa-solid fa-hashtag me-1"></i>${tour.id}</span>
                                 ${tour.remark ? ` | <span class="ms-1">${tour.remark}</span>` : ''}
+                                <div class="mt-2 text-warning fw-bold" id="badge-${tour.id}">
+                                    <i class="fa-solid fa-fire me-1"></i>關注 ${clicks} 次
+                                </div>
                             </div>
                             <button class="action-btn">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> 前往官網看售價

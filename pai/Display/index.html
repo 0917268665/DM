@@ -238,14 +238,21 @@
     // 強制轉換函式 (_m 縮圖)
     function getResizedPath(originalPath, size) {
         if (!originalPath || originalPath.startsWith("http")) return convertToDirectLink(originalPath, true);
-        if (size === 'original') return originalPath;
-        if (originalPath.toLowerCase().endsWith(".jpg")) {
-            return originalPath.replace(/.jpg$/i, "_m.jpg");
+        
+        // 自動修正路徑：如果當前頁面位於 Display 目錄下，且圖片路徑以 ../ 開頭
+        let fixedPath = originalPath;
+        if (window.location.pathname.includes('/Display/') && fixedPath.startsWith('../')) {
+            fixedPath = '../' + fixedPath; // 將 ../ 變為 ../../ 以退回兩層
         }
-        if (originalPath.toLowerCase().endsWith(".png")) {
-            return originalPath.replace(/.png$/i, "_m.png");
+        
+        if (size === 'original') return fixedPath;
+        if (fixedPath.toLowerCase().endsWith(".jpg")) {
+            return fixedPath.replace(/.jpg$/i, "_m.jpg");
         }
-        return originalPath;
+        if (fixedPath.toLowerCase().endsWith(".png")) {
+            return fixedPath.replace(/.png$/i, "_m.png");
+        }
+        return fixedPath;
     }
 
     const tourList = document.getElementById('tour-list');
