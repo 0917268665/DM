@@ -30,7 +30,7 @@
         }
 
         body {
-            background: radial-gradient(circle at 50% 50%, #1e2836 0%, var(--dark-bg) 100%);
+            background-color: #121820; /* 改為單純深色背景，解決 iOS WebKit 漸變與平移動畫衝突崩潰的問題 */
             color: var(--text-light);
             font-family: "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
@@ -403,39 +403,43 @@
                 position: relative; /* 確保齒輪絕對定位基準 */
             }
             .glass-header .header-logo {
-                max-height: 32px; /* 縮小 Logo */
-                padding: 3px 8px;
+                max-height: 30px; /* 縮小 Logo */
+                padding: 2px 6px;
             }
             .header-left-wrapper {
-                flex-wrap: nowrap !important; /* 強制 Logo、標題與加 LINE 並排在一行 */
+                flex-wrap: nowrap !important; /* 強制並排在一行 */
                 gap: 8px !important;
-                width: calc(100% - 45px); /* 留出空間給右上角齒輪 */
+                width: calc(100% - 40px); /* 留出空間給右上角齒輪 */
+            }
+            .header-logo-group {
+                align-items: flex-start !important; /* 左側內容靠左對齊 */
             }
             .header-title-area {
                 border-left: none !important; /* 手機端拔除左邊框節省像素 */
                 padding-left: 0 !important;
             }
             .glass-header h5 {
-                font-size: 0.95rem !important; /* 縮小標題字體 */
+                font-size: 0.92rem !important; /* 縮小標題字體 */
             }
             .header-business-info {
-                font-size: 0.65rem !important; /* 極致壓縮業務聯絡資訊 */
+                font-size: 0.62rem !important; /* 極致壓縮業務聯絡資訊 */
                 margin-top: 1px !important;
-                gap: 5px !important;
+                gap: 4px !important;
                 white-space: nowrap; /* 強制單行不折行 */
                 overflow: hidden;
                 text-overflow: ellipsis;
+                max-width: 140px; /* 限制寬度防止溢出 */
             }
             .settings-dropdown {
                 position: absolute;
-                right: 15px;
+                right: 12px;
                 top: 50%;
                 transform: translateY(-50%);
                 z-index: 1010;
             }
             .settings-btn {
-                width: 34px; /* 縮小齒輪按鈕，精緻且省空間 */
-                height: 34px;
+                width: 32px; /* 縮小齒輪按鈕，精緻且省空間 */
+                height: 32px;
             }
             .settings-menu {
                 right: 0;
@@ -469,21 +473,26 @@
     <header class="glass-header shadow-lg py-2">
         <div class="container-fluid px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3 flex-wrap header-left-wrapper">
-                <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
+                <!-- 左側：Logo與其下方的業務聯絡資訊 (完全符合手繪箭頭指向 Logo 下方的需求) -->
+                <div class="d-flex flex-column align-items-start header-logo-group">
+                    <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
+                    <!-- 移入原頁尾的業務資訊 -->
+                    <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
+                        <span><i class="fa-solid fa-user text-warning me-1"></i>陳彥百 (百百)</span>
+                        <span class="d-none d-md-inline">|</span>
+                        <span><i class="fa-solid fa-phone text-warning me-1"></i>0917268665</span>
+                        <span class="d-none d-md-inline">|</span>
+                        <span>ID: LAES62</span>
+                    </div>
+                </div>
+                
+                <!-- 右側：標題與加 LINE 按鈕 -->
                 <div class="border-start border-secondary ps-3 header-title-area">
                     <div class="d-flex align-items-center gap-2 flex-nowrap">
                         <h5 class="mb-0 fw-bold text-white text-nowrap">精選DM推薦</h5>
                         <a href="https://line.me/ti/p/I_O5--_4ks" target="_blank" class="btn btn-success btn-xs rounded-pill px-2 py-0 text-white text-decoration-none d-flex align-items-center gap-1" style="font-size: 0.72rem; line-height: 1.5; height: fit-content; white-space: nowrap;">
                             <i class="fa-brands fa-line"></i>加 LINE
                         </a>
-                    </div>
-                    <!-- 移入原頁尾的業務資訊 -->
-                    <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
-                        <span><i class="fa-solid fa-user text-warning me-1"></i>業務：陳彥百 (百百)</span>
-                        <span class="d-none d-md-inline">|</span>
-                        <span><i class="fa-solid fa-phone text-warning me-1"></i>手機：0917268665</span>
-                        <span class="d-none d-md-inline">|</span>
-                        <span>LINE ID：LAES62</span>
                     </div>
                 </div>
             </div>
@@ -837,7 +846,8 @@
                 grabCursor: true,
                 centeredSlides: true,
                 loop: canLoop,
-                autoplay: {
+                speed: 800, // 將切換動畫速度放慢至 800ms，讓位移更平滑，避開 iOS WebKit 計算卡頓
+                autoplay: { // 全面啟用自動播放，因為背景與點點已優化，手機與 iPad 皆能安全穩定輪播
                     delay: 4000,
                     disableOnInteraction: false,
                     pauseOnMouseEnter: true,
@@ -845,7 +855,7 @@
                 pagination: {
                     el: '.swiper-pagination',
                     clickable: true,
-                    dynamicBullets: true,
+                    dynamicBullets: false, // 關閉動態點點縮放，防止 iOS 換頁時因高頻重繪 Dots 引發崩潰
                 },
                 navigation: {
                     nextEl: '.swiper-button-next',
