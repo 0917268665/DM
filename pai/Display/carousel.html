@@ -396,7 +396,32 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 橫向與直向螢幕自適應修正 - 極致壓縮手機版 Header 高度並優化齒輪定位 */
+        /* 響應式佈局：大螢幕下使用 Grid 控制 Logo 左側兩行，標題與業務右側排列 */
+        @media (min-width: 768px) {
+            .header-left-wrapper {
+                display: grid !important;
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: 20px;
+                row-gap: 4px;
+            }
+            .header-logo {
+                grid-column: 1;
+                grid-row: 1 / span 2; /* Logo 佔用左側高度 */
+            }
+            .header-title-area {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            .header-business-info {
+                grid-column: 2;
+                grid-row: 2;
+                margin-top: 0 !important;
+            }
+        }
+
+        /* 橫向與直向螢幕自適應修正 - 手機版使用 Grid 將業務定位於 Logo 正下方 */
         @media (max-width: 767.98px) {
             .glass-header {
                 padding: 6px 0 !important;
@@ -407,21 +432,21 @@
                 padding: 2px 6px;
             }
             .header-left-wrapper {
-                flex-wrap: nowrap !important; /* 強制並排在一行 */
-                gap: 8px !important;
+                display: grid !important;
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto;
+                align-items: center;
+                column-gap: 10px;
+                row-gap: 2px;
                 width: calc(100% - 40px); /* 留出空間給右上角齒輪 */
             }
-            .header-logo-group {
-                align-items: flex-start !important; /* 左側內容靠左對齊 */
-            }
-            .header-title-area {
-                border-left: none !important; /* 手機端拔除左邊框節省像素 */
-                padding-left: 0 !important;
-            }
-            .glass-header h5 {
-                font-size: 0.92rem !important; /* 縮小標題字體 */
+            .header-logo {
+                grid-column: 1;
+                grid-row: 1;
             }
             .header-business-info {
+                grid-column: 1;
+                grid-row: 2; /* 業務資訊在手機版排在 Logo 下方 */
                 font-size: 0.62rem !important; /* 極致壓縮業務聯絡資訊 */
                 margin-top: 1px !important;
                 gap: 4px !important;
@@ -429,6 +454,15 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 max-width: 140px; /* 限制寬度防止溢出 */
+            }
+            .header-title-area {
+                grid-column: 2;
+                grid-row: 1 / span 2; /* 右側標題與加 LINE 佔用右側高度 */
+                border-left: none !important; /* 手機端拔除左邊框節省像素 */
+                padding-left: 0 !important;
+            }
+            .glass-header h5 {
+                font-size: 0.92rem !important; /* 縮小標題字體 */
             }
             .settings-dropdown {
                 position: absolute;
@@ -473,20 +507,10 @@
     <header class="glass-header shadow-lg py-2">
         <div class="container-fluid px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3 flex-wrap header-left-wrapper">
-                <!-- 左側：Logo與其下方的業務聯絡資訊 (完全符合手繪箭頭指向 Logo 下方的需求) -->
-                <div class="d-flex flex-column align-items-start header-logo-group">
-                    <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
-                    <!-- 移入原頁尾的業務資訊 -->
-                    <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
-                        <span><i class="fa-solid fa-user text-warning me-1"></i>陳彥百 (百百)</span>
-                        <span class="d-none d-md-inline">|</span>
-                        <span><i class="fa-solid fa-phone text-warning me-1"></i>0917268665</span>
-                        <span class="d-none d-md-inline">|</span>
-                        <span>ID: LAES62</span>
-                    </div>
-                </div>
+                <!-- 1. Logo 圖片 -->
+                <img src="../logo.png" alt="世興旅行社 Logo" class="header-logo" onerror="this.src='https://0917268665.github.io/DM/logo.png'">
                 
-                <!-- 右側：標題與加 LINE 按鈕 -->
+                <!-- 2. 標題與加 LINE 按鈕 -->
                 <div class="border-start border-secondary ps-3 header-title-area">
                     <div class="d-flex align-items-center gap-2 flex-nowrap">
                         <h5 class="mb-0 fw-bold text-white text-nowrap">精選DM推薦</h5>
@@ -494,6 +518,15 @@
                             <i class="fa-brands fa-line"></i>加 LINE
                         </a>
                     </div>
+                </div>
+                
+                <!-- 3. 業務聯絡資訊 (由 CSS Grid 控制其在手機版排在 Logo 下方，電腦版排在標題下方) -->
+                <div class="header-business-info mt-1 d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.82rem; color: #a0b0c0;">
+                    <span><i class="fa-solid fa-user text-warning me-1"></i>陳彥百 (百百)</span>
+                    <span class="d-none d-md-inline">|</span>
+                    <span><i class="fa-solid fa-phone text-warning me-1"></i>0917268665</span>
+                    <span class="d-none d-md-inline">|</span>
+                    <span>ID: LAES62</span>
                 </div>
             </div>
             
@@ -690,8 +723,19 @@
                             header: true,
                             skipEmptyLines: true,
                             complete: function(results) {
+                                // 清洗資料，去除欄位名與數值尾部的 \r 換行符以防 DOM 損壞
+                                const cleanData = results.data.map(item => {
+                                    const cleanItem = {};
+                                    for (let key in item) {
+                                        const cleanKey = key.replace(/\r/g, '').trim();
+                                        const cleanVal = typeof item[key] === 'string' ? item[key].replace(/\r/g, '').trim() : item[key];
+                                        cleanItem[cleanKey] = cleanVal;
+                                    }
+                                    return cleanItem;
+                                });
+
                                 // 過濾掉沒有 id 或標題的無效列
-                                ALL_TOURS = results.data.filter(item => item.id && item.title);
+                                ALL_TOURS = cleanData.filter(item => item.id && item.title);
                                 ORIGINAL_TOURS = [...ALL_TOURS]; // 備份原始行程
                                 
                                 // 預設為隨機播放，所以在初始化時直接對 ALL_TOURS 進行隨機打亂
@@ -788,16 +832,17 @@
             DISPLAY_TOURS.forEach((tour) => {
                 // 優先使用 preview 大小，以便輪播畫質清晰且不會太慢
                 const imgSrc = getResizedPath(tour.img, 'preview');
+                const originalSrc = getResizedPath(tour.img, 'original');
                 const clicks = CLICKS_MAP[tour.id] || 0;
                 
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 
-                // 建立卡片 HTML
+                // 建立卡片 HTML (加上 onerror 圖片載入自癒機制，若縮圖不存在自動加載原圖，解決 WebKit 動畫渲染無效節點閃退問題)
                 slide.innerHTML = `
                     <div class="dm-card" onclick="handleCardClick('${tour.id}', '${tour.title.replace(/'/g, "\\'")}', '${tour.company_prod_no}')">
                         <div class="dm-image-wrapper">
-                            <img src="${imgSrc}" class="dm-img" alt="${tour.title}">
+                            <img src="${imgSrc}" class="dm-img" alt="${tour.title}" onerror="this.onerror=null; this.src='${originalSrc}';">
                         </div>
                         <div class="card-info">
                             <div class="dm-title">${tour.title}</div>
@@ -855,7 +900,7 @@
                 pagination: {
                     el: '.swiper-pagination',
                     clickable: true,
-                    dynamicBullets: false, // 關閉動態點點縮放，防止 iOS 換頁時因高頻重繪 Dots 引發崩潰
+                    type: 'fraction', // 改為分式顯示（例如：3 / 15），精美省空間且防止 iOS 換頁時高頻重繪點點導致崩潰
                 },
                 navigation: {
                     nextEl: '.swiper-button-next',
