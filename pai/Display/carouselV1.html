@@ -116,6 +116,9 @@
             width: 100%;
             padding-top: 5px;
             padding-bottom: 30px;
+            touch-action: pan-y; /* 限制手勢只允許縱向滾動，橫向滑動由 Swiper 穩定接管，防止手勢鎖定衝突 */
+            -webkit-user-select: none; /* 防止手勢拖曳滑動時意外選中卡片文字 */
+            user-select: none;
         }
 
         /* 齒輪設定選單 */
@@ -200,6 +203,9 @@
                 border-color: var(--border-glass-hover);
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             }
+            .dm-card:hover .dm-img {
+                transform: scale(1.03); /* 行動觸控端不執行圖片縮放動畫，防止手動滑動時因 GPU 資源競爭導致閃退 */
+            }
         }
 
         /* 圖片區域鎖定 A4 直向比例，防範拉伸變形 */
@@ -222,9 +228,7 @@
             transition: transform 0.5s ease;
         }
 
-        .dm-card:hover .dm-img {
-            transform: scale(1.03);
-        }
+
 
         /* 點擊數 Badge 貼紙 */
         .click-badge {
@@ -850,6 +854,7 @@
                 grabCursor: true,
                 centeredSlides: true,
                 loop: canLoop,
+                touchStartPreventDefault: false, // 釋放預設的觸碰阻斷，讓 iOS 能更滑順自然地翻頁
                 autoplay: {
                     delay: 4000,
                     disableOnInteraction: false,
