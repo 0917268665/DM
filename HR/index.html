@@ -203,8 +203,9 @@
         };
       });
 
-      // Google Apps Script Sync Settings
-      const [gasUrl, setGasUrl] = useState(() => localStorage.getItem('hr_gas_url') || '');
+      // Google Apps Script Sync Settings (預設預置 URL 以利 GitHub Pages 部署後初次造訪自動雙向同步)
+      const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzckTfS6df7qmR9bcjdyiqQguYFO7GkxjdQwH5Co4kjPisVYNDNpGcfinKK-_HQNV5X/exec';
+      const [gasUrl, setGasUrl] = useState(() => localStorage.getItem('hr_gas_url') || DEFAULT_GAS_URL);
       const [showSettingsModal, setShowSettingsModal] = useState(false);
       const [syncingGas, setSyncingGas] = useState(false);
 
