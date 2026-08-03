@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>祥麟紙器 考勤打卡管理系統</title>
+
+  <!-- PWA & Mobile Optimization Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React & Babel CDNs -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Canvas Confetti for Celebration effect on Clock In -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .pulse-ring {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+      animation: pulse-ring-anim 2s infinite;
+    }
+    @keyframes pulse-ring-anim {
+      0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-blue-500 selection:text-white">
+  <div id="root"></div>
+
+  <!-- Main Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // --- Helper to get dynamic greeting based on current hour ---
+    function getGreeting(date) {
+      const hour = date.getHours();
+      if (hour >= 5 && hour < 12) return '早安 ☀️';
+      if (hour >= 12 && hour < 14) return '午安 🌤️';
+      if (hour >= 14 && hour < 18) return '下午好 🌇';
+      return '晚上好 🌙';
+    }
+
+    // --- Helper to clean & format Date to YYYY-MM-DD ---
+    function cleanDateString(val) {
+      if (!val) return '';
+      const str = String(val);
+      const match = str.match(/(\d{4}-\d{2}-\d{2})/);
+      if (match) return match[1];
+      try {
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString().split('T')[0];
+        }
+      } catch (e) {}
+      return str.split('T')[0];
+    }
+
+    // --- Helper to clean & format Time to HH:mm:ss (No 1899 Year or Timezones!) ---
+    function cleanTimeString(val) {
+      if (!val || val === '--:--:--') return '--:--:--';
+      const str = String(val);
+      
+      const timeMatch = str.match(/(\d{2}:\d{2}:\d{2})/);
+      if (timeMatch) return timeMatch[1];
+
+      const shortMatch = str.match(/(\d{2}:\d{2})/);
+      if (shortMatch) return shortMatch[1];
+
+      return str;
+    }
+
+    // --- Haversine Formula for GPS Distance Calculation (Meters) ---
+    function calculateGpsDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return Math.round(R * c);
+    }
+
+    // --- Calculate Late Minutes Based on Employee Shift Start Time ---
+    function calculateLateMinutes(shiftStr, clockInDate) {
+      let shiftStartHour = 9;
+      let shiftStartMin = 0;
+
+      if (shiftStr && shiftStr.includes('-')) {
+        const startTimePart = shiftStr.split('-')[0].trim();
+        const [h, m] = startTimePart.split(':').map(Number);
+        if (!isNaN(h)) shiftStartHour = h;
+        if (!isNaN(m)) shiftStartMin = m;
+      }
+
+      const shiftTotalMins = shiftStartHour * 60 + shiftStartMin;
+      const actualTotalMins = clockInDate.getHours() * 60 + clockInDate.getMinutes();
+
+      const diff = actualTotalMins - shiftTotalMins;
+      return diff > 0 ? diff : 0;
+    }
+
+    const INITIAL_EMPLOYEES = [
+      { id: 'EMP001', username: 'emp01', pass: '123456', name: '張小明', role: '前端開發工程師', dept: '技術研發部', avatar: '👨‍💻', shift: '09:00 - 18:00', isAdmin: false, annualLeave: 10, sickLeave: 30, compLeave: 0 },
+      { id: 'EMP002', username: 'admin', pass: 'admin888', name: '李梅', role: 'HR 人資主管', dept: '人力資源部', avatar: '👩‍💼', shift: '09:00 - 18:00', isAdmin: true, annualLeave: 14, sickLeave: 30, compLeave: 8 },
+      { id: 'EMP003', username: 'emp03', pass: '123456', name: '王大同', role: '資深產品經理', dept: '產品設計部', avatar: '👨‍💼', shift: '09:30 - 18:30', isAdmin: false, annualLeave: 12, sickLeave: 30, compLeave: 12.5 }
+    ];
+
+    const INITIAL_LOGS = [];
+    const INITIAL_LEAVES = [];
+
+    // --- Main App Component ---
+    function App() {
+      const [currentUser, setCurrentUser] = useState(() => {
+        const savedUser = localStorage.getItem('hr_current_user');
+        return savedUser ? JSON.parse(savedUser) : null;
+      });
+      const [loginAccount, setLoginAccount] = useState('');
+      const [loginPass, setLoginPass] = useState('');
+
+      // Location & WiFi Restrictions
+      const [punchConfig, setPunchConfig] = useState(() => {
+        const savedConfig = localStorage.getItem('hr_punch_config');
+        return savedConfig ? JSON.parse(savedConfig) : {
+          enableWifiRestriction: false,
+          wifiName: 'Office_Corporate_5G',
+          enableGpsRestriction: false,
+          centerLat: 25.0330,
+          centerLng: 121.5654,
+          allowedRadiusMeters: 300,
+          restrictionLogic: 'AND'
+        };
+      });
+
+      // Google Apps Script Sync Settings
+      const [gasUrl, setGasUrl] = useState(() => localStorage.getItem('hr_gas_url') || '');
+      const [showSettingsModal, setShowSettingsModal] = useState(false);
+      const [syncingGas, setSyncingGas] = useState(false);
+
+      // Employees & Data Persistence
+      const [employees, setEmployees] = useState(() => {
+        const saved = localStorage.getItem('hr_employees');
+        return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
+      });
+      const [logs, setLogs] = useState(() => {
+        const saved = localStorage.getItem('hr_logs');
+        return saved ? JSON.parse(saved) : INITIAL_LOGS;
+      });
+      const [leaves, setLeaves] = useState(() => {
+        const saved = localStorage.getItem('hr_leaves');
+        return saved ? JSON.parse(saved) : INITIAL_LEAVES;
+      });
+
+      const [activeTab, setActiveTab] = useState('clock');
+      const [currentTime, setCurrentTime] = useState(new Date());
+      const [punchNote, setPunchNote] = useState('');
+      const [toast, setToast] = useState(null);
+
+      // Report Filtering States
+      const [reportType, setReportType] = useState('monthly');
+      const [filterYear, setFilterYear] = useState('2026');
+      const [filterMonth, setFilterMonth] = useState('08');
+
+      // Modals
+      const [showLeaveModal, setShowLeaveModal] = useState(false);
+      const [showEmpEditModal, setShowEmpEditModal] = useState(false);
+      const [editingEmp, setEditingEmp] = useState(null);
+
+      // Save States to LocalStorage
+      useEffect(() => {
+        localStorage.setItem('hr_punch_config', JSON.stringify(punchConfig));
+      }, [punchConfig]);
+
+      useEffect(() => {
+        localStorage.setItem('hr_employees', JSON.stringify(employees));
+      }, [employees]);
+
+      useEffect(() => {
+        localStorage.setItem('hr_logs', JSON.stringify(logs));
+      }, [logs]);
+
+      useEffect(() => {
+        localStorage.setItem('hr_leaves', JSON.stringify(leaves));
+      }, [leaves]);
+
+      useEffect(() => {
+        if (currentUser) {
+          localStorage.setItem('hr_current_user', JSON.stringify(currentUser));
+        } else {
+          localStorage.removeItem('hr_current_user');
+        }
+      }, [currentUser]);
+
+      useEffect(() => {
+        localStorage.setItem('hr_gas_url', gasUrl);
+      }, [gasUrl]);
+
+      // Clock Timer
+      useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+      }, []);
+
+      // Trigger Lucide Icon Render
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      const showToast = (msg, type = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 4500);
+      };
+
+      // --- BI-DIRECTIONAL SYNC & CLEAN FORMATTING ---
+      const fetchFromSheet = async () => {
+        if (!gasUrl) return;
+        setSyncingGas(true);
+        try {
+          const res = await fetch(gasUrl);
+          const data = await res.json();
+          if (data.status === 'success') {
+            if (Array.isArray(data.employees) && data.employees.length > 0) {
+              setEmployees(data.employees);
+            }
+            if (Array.isArray(data.logs)) {
+              // Format & Clean raw log dates and times
+              const cleanedLogs = data.logs.map(l => ({
+                ...l,
+                date: cleanDateString(l.date),
+                checkIn: cleanTimeString(l.checkIn),
+                checkOut: cleanTimeString(l.checkOut)
+              }));
+              setLogs(cleanedLogs);
+            }
+            showToast('📊 已成功從 Google 試算表雙向同步最新考勤紀錄！');
+          }
+        } catch (err) {
+          console.warn('Google Sheet GET Sync warning:', err);
+        } finally {
+          setSyncingGas(false);
+        }
+      };
+
+      useEffect(() => {
+        if (gasUrl) {
+          fetchFromSheet();
+        }
+      }, [gasUrl]);
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        const found = employees.find(emp => emp.username === loginAccount && emp.pass === loginPass);
+        
+        if (!found) {
+          showToast('❌ 帳號或密碼錯誤，請重新確認！', 'warning');
+          return;
+        }
+
+        setCurrentUser(found);
+        setActiveTab(found.isAdmin ? 'admin' : 'clock');
+        showToast(`🎉 歡迎登入，${found.name} (${found.isAdmin ? '主管權限' : '一般員工'})！`);
+      };
+
+      const handleLogout = () => {
+        setCurrentUser(null);
+        setLoginAccount('');
+        setLoginPass('');
+        showToast('👋 您已成功登出系統！');
+      };
+
+      const todayStr = currentTime.toISOString().split('T')[0];
+      const todayLog = useMemo(() => {
+        if (!currentUser) return null;
+        return logs.find(l => l.empId === currentUser.id && l.date === todayStr);
+      }, [logs, currentUser, todayStr]);
+
+      const handleSaveEmployee = async (empData) => {
+        let updatedList = [];
+        const exists = employees.some(e => e.id === empData.id);
+
+        if (exists) {
+          updatedList = employees.map(e => e.id === empData.id ? { ...e, ...empData } : e);
+        } else {
+          updatedList = [...employees, empData];
+        }
+
+        setEmployees(updatedList);
+
+        if (currentUser && currentUser.id === empData.id) {
+          setCurrentUser(prev => ({ ...prev, ...empData }));
+        }
+
+        setShowEmpEditModal(false);
+        setEditingEmp(null);
+        showToast(`✅ 員工【${empData.name}】資料與班次(${empData.shift})已儲存！`);
+
+        if (gasUrl) {
+          try {
+            await fetch(gasUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'saveEmployee', employee: empData })
+            });
+            showToast('📊 員工與班次資料已同步寫入 Google 試算表！');
+          } catch (err) {
+            console.error('GAS Save Employee Error:', err);
+          }
+        }
+      };
+
+      const syncToGoogleSheet = async (logData) => {
+        if (!gasUrl) return;
+        setSyncingGas(true);
+        try {
+          const payload = {
+            ...logData,
+            empName: currentUser.name,
+            dept: currentUser.dept
+          };
+
+          await fetch(gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          showToast('📊 打卡資料已自動同步寫入 Google 試算表！');
+        } catch (err) {
+          console.error('GAS Sync Error:', err);
+          showToast('⚠️ Google 試算表同步連線異常，已先保存在本地庫。', 'warning');
+        } finally {
+          setSyncingGas(false);
+        }
+      };
+
+      // RESTRICTION VALIDATION
+      const validatePunchRestrictions = async () => {
+        const isWifiOn = punchConfig.enableWifiRestriction;
+        const isGpsOn = punchConfig.enableGpsRestriction;
+
+        if (!isWifiOn && !isGpsOn) return true;
+
+        let wifiPassed = false;
+        let gpsPassed = false;
+
+        if (isWifiOn) {
+          if (navigator.connection && navigator.connection.type === 'cellular') {
+            wifiPassed = false;
+          } else {
+            wifiPassed = true;
+          }
+        }
+
+        if (isGpsOn) {
+          gpsPassed = await new Promise((resolve) => {
+            if (!navigator.geolocation) {
+              resolve(false);
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const distance = calculateGpsDistance(
+                  pos.coords.latitude, pos.coords.longitude,
+                  punchConfig.centerLat, punchConfig.centerLng
+                );
+                resolve(distance <= punchConfig.allowedRadiusMeters);
+              },
+              () => resolve(false),
+              { timeout: 8000 }
+            );
+          });
+        }
+
+        const mode = punchConfig.restrictionLogic || 'AND';
+
+        if (isWifiOn && isGpsOn) {
+          if (mode === 'AND') {
+            if (!wifiPassed || !gpsPassed) {
+              showToast('⚠️ 打卡失敗：目前設定為【需同時滿足 WiFi 與 GPS 兩者限制】！', 'warning');
+              return false;
+            }
+            return true;
+          } else if (mode === 'OR') {
+            if (!wifiPassed && !gpsPassed) {
+              showToast('⚠️ 打卡失敗：WiFi 與 GPS 定位皆未符合公司允許範圍！', 'warning');
+              return false;
+            }
+            return true;
+          }
+        }
+
+        if (isWifiOn && !wifiPassed) {
+          showToast(`⚠️ 打卡失敗：請連接指定公司 WiFi (${punchConfig.wifiName})！`, 'warning');
+          return false;
+        }
+
+        if (isGpsOn && !gpsPassed) {
+          showToast(`⚠️ 打卡失敗：您不在公司指定的 GPS 允許半徑範圍內！`, 'warning');
+          return false;
+        }
+
+        return true;
+      };
+
+      const handleClockIn = async () => {
+        if (!currentUser) return;
+        
+        const passRestrictions = await validatePunchRestrictions();
+        if (!passRestrictions) return;
+
+        const timeStr = currentTime.toTimeString().split(' ')[0];
+        
+        const lateMins = calculateLateMinutes(currentUser.shift, currentTime);
+        const isLate = lateMins > 0;
+        
+        const newLog = {
+          id: 'LOG' + Date.now(),
+          empId: currentUser.id,
+          date: todayStr,
+          checkIn: timeStr,
+          checkOut: '--:--:--',
+          hours: 0,
+          status: isLate ? 'late' : 'normal',
+          lateMinutes: lateMins,
+          note: punchNote || (isLate ? `遲到 ${lateMins} 分鐘` : '正常打卡')
+        };
+
+        setLogs(prev => [newLog, ...prev.filter(l => !(l.empId === currentUser.id && l.date === todayStr))]);
+        setPunchNote('');
+        showToast(`🎉 上班打卡成功！時間：${timeStr} (${isLate ? `遲到 ${lateMins} 分鐘` : '正常出勤'})`, isLate ? 'warning' : 'success');
+
+        syncToGoogleSheet(newLog);
+
+        if (window.confetti) {
+          window.confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+        }
+      };
+
+      const handleClockOut = async () => {
+        if (!currentUser || !todayLog) return;
+
+        const passRestrictions = await validatePunchRestrictions();
+        if (!passRestrictions) return;
+
+        const timeStr = currentTime.toTimeString().split(' ')[0];
+
+        let totalHours = 8.5;
+        if (todayLog.checkIn && todayLog.checkIn !== '--:--:--') {
+          const [h1, m1] = todayLog.checkIn.split(':').map(Number);
+          const [h2, m2] = [currentTime.getHours(), currentTime.getMinutes()];
+          const diffMinutes = (h2 * 60 + m2) - (h1 * 60 + m1) - 60;
+          totalHours = Math.max(0, Number((diffMinutes / 60).toFixed(1)));
+        }
+
+        const updatedLog = {
+          ...todayLog,
+          checkOut: timeStr,
+          hours: totalHours,
+          note: punchNote ? `${todayLog.note} | ${punchNote}` : todayLog.note
+        };
+
+        setLogs(prev => prev.map(l => (l.empId === currentUser.id && l.date === todayStr) ? updatedLog : l));
+        setPunchNote('');
+        showToast(`👋 下班打卡成功！時間：${timeStr} (本日工作約 ${totalHours} 小時)`, 'success');
+
+        syncToGoogleSheet(updatedLog);
+      };
+
+      const handleAddLeave = (leaveData) => {
+        const newLeave = {
+          id: 'LEV' + Date.now(),
+          empId: currentUser.id,
+          ...leaveData,
+          status: 'pending',
+          submitDate: todayStr
+        };
+        setLeaves(prev => [newLeave, ...prev]);
+        setShowLeaveModal(false);
+        showToast('📝 申請單已成功提交主管審核！');
+      };
+
+      const handleLeaveAudit = (id, newStatus) => {
+        setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+        showToast(`審核完成：該單據已標記為 ${newStatus === 'approved' ? '核准' : '駁回'}`, newStatus === 'approved' ? 'success' : 'warning');
+      };
+
+      const handleExportReportCSV = () => {
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        let fileName = "";
+
+        if (reportType === 'monthly') {
+          fileName = `全公司考勤月報表_${filterYear}年${filterMonth}月.csv`;
+          csvContent += "打卡ID,員工編號,員工姓名,部門,班次,日期,上班時間,下班時間,總工時(小時),出勤狀態,遲到分鐘數,備註\n";
+          
+          const filteredLogs = logs.filter(l => l.date.startsWith(`${filterYear}-${filterMonth}`));
+          filteredLogs.forEach(l => {
+            const emp = employees.find(e => e.id === l.empId) || {};
+            const statusText = l.status === 'normal' ? '正常出勤' : '遲到/異常';
+            csvContent += `"${l.id}","${l.empId}","${emp.name || ''}","${emp.dept || ''}","${emp.shift || ''}","${cleanDateString(l.date)}","${cleanTimeString(l.checkIn)}","${cleanTimeString(l.checkOut)}","${l.hours}","${statusText}","${l.lateMinutes || 0}","${l.note || ''}"\n`;
+          });
+
+        } else if (reportType === 'yearly') {
+          fileName = `全公司年度出勤統計總表_${filterYear}年.csv`;
+          csvContent += "員工編號,員工姓名,部門,班次,年度,正常出勤天數,遲到天數/次數,當月總遲到(分鐘),累計工時(小時)\n";
+
+          employees.forEach(emp => {
+            const empYearLogs = logs.filter(l => l.empId === emp.id && l.date.startsWith(`${filterYear}-`));
+            const normalDays = empYearLogs.filter(l => l.status === 'normal').length;
+            const lateDays = empYearLogs.filter(l => l.status === 'late').length;
+            const totalLateMins = empYearLogs.reduce((sum, l) => sum + (l.lateMinutes || 0), 0);
+            const totalHours = empYearLogs.reduce((sum, l) => sum + (l.hours || 0), 0).toFixed(1);
+            csvContent += `"${emp.id}","${emp.name}","${emp.dept}","${emp.shift || ''}","${filterYear}","${normalDays} 天","${lateDays} 次","${totalLateMins} 分鐘","${totalHours} 小時"\n`;
+          });
+
+        } else if (reportType === 'leave') {
+          fileName = `全公司請假紀錄表_${filterYear}年.csv`;
+          csvContent += "申請單號,員工編號,員工姓名,假別,開始日期,結束日期,請假時數,事由說明,審核狀態\n";
+
+          leaves.filter(l => l.type !== '加班').forEach(l => {
+            const emp = employees.find(e => e.id === l.empId) || {};
+            const statusText = l.status === 'approved' ? '已核准' : l.status === 'pending' ? '待審核' : '已駁回';
+            csvContent += `"${l.id}","${l.empId}","${emp.name || ''}","${l.type}","${cleanDateString(l.startDate)}","${cleanDateString(l.endDate)}","${l.hours}","${l.reason}","${statusText}"\n`;
+          });
+
+        } else if (reportType === 'overtime') {
+          fileName = `全公司加班紀錄表_${filterYear}年.csv`;
+          csvContent += "申請單號,員工編號,員工姓名,加班日期,結束日期,加班時數(小時),事由說明,審核狀態\n";
+
+          leaves.filter(l => l.type === '加班').forEach(l => {
+            const emp = employees.find(e => e.id === l.empId) || {};
+            const statusText = l.status === 'approved' ? '已核准' : l.status === 'pending' ? '待審核' : '已駁回';
+            csvContent += `"${l.id}","${l.empId}","${emp.name || ''}","${cleanDateString(l.startDate)}","${cleanDateString(l.endDate)}","${l.hours}","${l.reason}","${statusText}"\n`;
+          });
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast(`📥 已成功下載【${fileName}】！`);
+      };
+
+      // LOGIN SCREEN
+      if (!currentUser) {
+        return (
+          <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-950">
+            <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            {toast && (
+              <div class={`fixed top-6 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl border text-sm flex items-center space-x-2 animate-bounce ${
+                toast.type === 'warning' ? 'bg-amber-950/90 text-amber-200 border-amber-500/50' : 'bg-emerald-950/90 text-emerald-200 border-emerald-500/50'
+              }`}>
+                <span>{toast.msg}</span>
+              </div>
+            )}
+
+            <div class="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 relative z-10 shadow-2xl border border-slate-800">
+              
+              <div class="text-center mb-8">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-3xl shadow-xl shadow-blue-500/20 mb-3">
+                  ⏰
+                </div>
+                <h1 class="text-2xl font-black gradient-text">祥麟紙器 考勤系統</h1>
+                <p class="text-xs text-slate-400 mt-1">請輸入帳號密碼登入</p>
+              </div>
+
+              <form onSubmit={handleLogin} class="space-y-4">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1.5">登入帳號：</label>
+                  <input 
+                    type="text" 
+                    value={loginAccount}
+                    onChange={(e) => setLoginAccount(e.target.value)}
+                    required
+                    placeholder="請輸入帳號..."
+                    class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1.5">密碼：</label>
+                  <input 
+                    type="password" 
+                    value={loginPass}
+                    onChange={(e) => setLoginPass(e.target.value)}
+                    required
+                    placeholder="請輸入密碼..."
+                    class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  class="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500"
+                >
+                  🚀 登入系統
+                </button>
+              </form>
+
+            </div>
+          </div>
+        );
+      }
+
+      // VIEW 2: AUTHENTICATED SYSTEM DASHBOARD
+      return (
+        <div class="min-h-screen pb-16">
+          
+          <header class="glass-nav sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-lg shadow-lg shadow-blue-500/20">
+                ⏰
+              </div>
+              <div>
+                <h1 class="text-base font-bold gradient-text tracking-wide">祥麟紙器</h1>
+                <p class="text-[10px] text-slate-400">考勤打卡管理系統</p>
+              </div>
+            </div>
+
+            <nav class="flex items-center space-x-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
+              <button 
+                onClick={() => setActiveTab('clock')} 
+                class={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center space-x-1 ${activeTab === 'clock' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                <span>⏰ 打卡主頁</span>
+              </button>
+              
+              {currentUser.isAdmin && (
+                <button 
+                  onClick={() => setActiveTab('records')} 
+                  class={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center space-x-1 ${activeTab === 'records' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  <span>📋 考勤報表</span>
+                </button>
+              )}
+
+              <button 
+                onClick={() => setActiveTab('leave')} 
+                class={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center space-x-1 ${activeTab === 'leave' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                <span>📝 請假/加班</span>
+              </button>
+              
+              {currentUser.isAdmin && (
+                <button 
+                  onClick={() => setActiveTab('admin')} 
+                  class={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center space-x-1 ${activeTab === 'admin' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  <span>📊 主管</span>
+                </button>
+              )}
+            </nav>
+
+            <div class="flex items-center space-x-2">
+              {currentUser.isAdmin && (
+                <button 
+                  onClick={() => setShowSettingsModal(true)}
+                  class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs text-slate-300 flex items-center space-x-1 shadow-sm"
+                  title="Google 試算表 Apps Script 設定 (僅主管可見)"
+                >
+                  <span class={`w-2 h-2 rounded-full ${gasUrl ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                  <span class="hidden sm:inline">{gasUrl ? '試算表已連線' : '設定試算表同步'}</span>
+                </button>
+              )}
+
+              <div class="flex items-center space-x-1.5 bg-slate-800/90 px-2.5 py-1 rounded-xl border border-slate-700">
+                <span class="text-base">{currentUser.avatar}</span>
+                <div class="text-left">
+                  <div class="text-xs font-bold text-slate-100 flex items-center space-x-1">
+                    <span>{currentUser.name}</span>
+                    {currentUser.isAdmin && (
+                      <span class="bg-indigo-500/20 text-indigo-400 text-[9px] px-1 rounded border border-indigo-500/30">主管</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleLogout}
+                class="p-1.5 bg-slate-800/80 hover:bg-rose-950/60 hover:text-rose-400 border border-slate-700 rounded-xl text-xs text-slate-400 transition-all"
+                title="登出系統"
+              >
+                🚪
+              </button>
+            </div>
+          </header>
+
+          {toast && (
+            <div class={`fixed top-16 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl border text-sm flex items-center space-x-2 animate-bounce ${
+              toast.type === 'warning' ? 'bg-amber-950/90 text-amber-200 border-amber-500/50' : 'bg-emerald-950/90 text-emerald-200 border-emerald-500/50'
+            }`}>
+              <span>{toast.msg}</span>
+            </div>
+          )}
+
+          <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            
+            {/* 1. 打卡主頁 TAB */}
+            {activeTab === 'clock' && (
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                  <div class="absolute -right-16 -top-16 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                  <div>
+                    <div class="flex items-center justify-between mb-6">
+                      <div>
+                        <div class="inline-flex items-center space-x-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-medium border border-blue-500/20 mb-2">
+                          <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                          <span>{currentUser.dept} ・ {currentUser.role}</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                          {getGreeting(currentTime)}，{currentUser.name}！
+                        </h2>
+                      </div>
+                      <div class="text-right hidden sm:block">
+                        <span class="text-xs text-slate-400 block mb-0.5">個人工作班次</span>
+                        <p class="text-sm font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+                          ⏱️ {currentUser.shift || '09:00 - 18:00'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="my-6 text-center bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-inner">
+                      <p class="text-xs sm:text-sm text-blue-400 font-medium mb-1">
+                        {currentTime.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+                      </p>
+                      <div class="text-4xl sm:text-6xl font-black tracking-wider text-white font-mono my-2">
+                        {currentTime.toLocaleTimeString('zh-TW', { hour12: false })}
+                      </div>
+                      <div class="flex items-center justify-center space-x-2 text-xs text-slate-400 mt-2">
+                        <span class={`w-2 h-2 rounded-full ${(punchConfig.enableWifiRestriction || punchConfig.enableGpsRestriction) ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`}></span>
+                        <span>
+                          {punchConfig.enableWifiRestriction && punchConfig.enableGpsRestriction 
+                            ? `打卡限制：【${punchConfig.restrictionLogic === 'AND' ? '需同時滿足 WiFi + GPS' : '滿足 WiFi 或 GPS 任意一種'}】` 
+                            : punchConfig.enableWifiRestriction 
+                            ? `WiFi 限制模式開啟 (${punchConfig.wifiName})`
+                            : punchConfig.enableGpsRestriction 
+                            ? `GPS 定位圍欄開啟 (半徑 ${punchConfig.allowedRadiusMeters}m)`
+                            : '考勤系統正常連線中'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="mb-6">
+                      <label class="block text-xs font-medium text-slate-400 mb-1.5">打卡備註 (選填)：</label>
+                      <input 
+                        type="text" 
+                        value={punchNote}
+                        onChange={(e) => setPunchNote(e.target.value)}
+                        placeholder=""
+                        class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+                    <button 
+                      onClick={handleClockIn}
+                      disabled={!!todayLog?.checkIn}
+                      class={`py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-2 transition-all shadow-lg ${
+                        todayLog?.checkIn 
+                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white pulse-ring'
+                      }`}
+                    >
+                      <span>🚀 上班打卡</span>
+                      {todayLog?.checkIn && <span class="text-xs font-normal">({cleanTimeString(todayLog.checkIn)})</span>}
+                    </button>
+
+                    <button 
+                      onClick={handleClockOut}
+                      disabled={!todayLog?.checkIn || (todayLog?.checkOut && todayLog?.checkOut !== '--:--:--')}
+                      class={`py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-2 transition-all shadow-lg ${
+                        !todayLog?.checkIn || (todayLog?.checkOut && todayLog?.checkOut !== '--:--:--')
+                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+                          : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white'
+                      }`}
+                    >
+                      <span>👋 下班打卡</span>
+                      {todayLog?.checkOut && todayLog?.checkOut !== '--:--:--' && (
+                        <span class="text-xs font-normal">({cleanTimeString(todayLog.checkOut)})</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="space-y-6">
+                  <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center justify-between">
+                      <span>今日出勤狀態</span>
+                      <span class="text-xs text-blue-400 font-normal">{todayStr}</span>
+                    </h3>
+
+                    {todayLog ? (
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                          <span class="text-xs text-slate-400">上班打卡</span>
+                          <span class="text-sm font-semibold text-emerald-400">{cleanTimeString(todayLog.checkIn)}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                          <span class="text-xs text-slate-400">下班打卡</span>
+                          <span class="text-sm font-semibold text-amber-400">{cleanTimeString(todayLog.checkOut)}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                          <span class="text-xs text-slate-400">當日出勤評定</span>
+                          <span class={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                            todayLog.status === 'normal' 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          }`}>
+                            {todayLog.status === 'normal' ? '✅ 正常出勤' : `⚠️ 遲到 (${todayLog.lateMinutes || 0} 分鐘)`}
+                          </span>
+                        </div>
+                        {todayLog.note && (
+                          <div class="p-3 bg-slate-900/40 rounded-xl border border-slate-800/80">
+                            <span class="text-[11px] text-slate-400 block mb-1">打卡備註：</span>
+                            <p class="text-xs text-slate-300">{todayLog.note}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div class="text-center py-8 text-slate-500">
+                        <div class="text-3xl mb-2">⏳</div>
+                        <p class="text-sm">今日尚無打卡紀錄</p>
+                        <p class="text-xs text-slate-600 mt-1">請點擊上方「上班打卡」按鈕完成打卡</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-300 mb-4">本月個人遲到與統計</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <p class="text-xs text-slate-400">遲到天數/次數</p>
+                        <p class="text-xl font-black text-amber-400 mt-1">
+                          {logs.filter(l => l.empId === currentUser.id && l.status === 'late').length} 次
+                        </p>
+                      </div>
+                      <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <p class="text-xs text-slate-400">當月總遲到分鐘</p>
+                        <p class="text-xl font-black text-rose-400 mt-1">
+                          {logs.filter(l => l.empId === currentUser.id).reduce((sum, l) => sum + (l.lateMinutes || 0), 0)} 分鐘
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* 2. 考勤與各種報表產出 TAB (ADMIN ONLY!) */}
+            {activeTab === 'records' && currentUser.isAdmin && (
+              <div class="glass-card rounded-2xl p-6">
+                
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
+                  <div>
+                    <h2 class="text-xl font-bold text-white">全公司考勤報表管理與 CSV 匯出</h2>
+                    <p class="text-xs text-slate-400 mt-1">
+                      {gasUrl ? '💡 雙向同步連線中：在 Google 試算表中編修打卡紀錄後，可隨時點擊【從試算表重新同步】更新網頁！' : '自動計算每日遲到分鐘數與當月總遲到分鐘數'}
+                    </p>
+                  </div>
+
+                  <div class="flex items-center space-x-2">
+                    {gasUrl && (
+                      <button 
+                        onClick={fetchFromSheet}
+                        disabled={syncingGas}
+                        class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 flex items-center space-x-1"
+                      >
+                        <span>🔄 從試算表重新同步</span>
+                      </button>
+                    )}
+                    <button 
+                      onClick={handleExportReportCSV}
+                      class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg flex items-center space-x-2"
+                    >
+                      <span>📥 匯出全公司報表 (.csv)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-900/90 rounded-2xl border border-slate-800 mb-6">
+                  <button 
+                    onClick={() => setReportType('monthly')}
+                    class={`py-2 px-3 text-xs font-semibold rounded-xl transition-all ${reportType === 'monthly' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    📅 全公司月報表
+                  </button>
+                  <button 
+                    onClick={() => setReportType('yearly')}
+                    class={`py-2 px-3 text-xs font-semibold rounded-xl transition-all ${reportType === 'yearly' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    🗓️ 全公司年報表
+                  </button>
+                  <button 
+                    onClick={() => setReportType('leave')}
+                    class={`py-2 px-3 text-xs font-semibold rounded-xl transition-all ${reportType === 'leave' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    📝 請假紀錄明細表
+                  </button>
+                  <button 
+                    onClick={() => setReportType('overtime')}
+                    class={`py-2 px-3 text-xs font-semibold rounded-xl transition-all ${reportType === 'overtime' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    ⏰ 加班紀錄明細表
+                  </button>
+                </div>
+
+                {(reportType === 'monthly' || reportType === 'yearly') && (
+                  <div class="flex items-center space-x-3 mb-6 bg-slate-900/50 p-3 rounded-xl border border-slate-800/80">
+                    <span class="text-xs text-slate-400 font-medium">報表查詢區間：</span>
+                    <select 
+                      value={filterYear} 
+                      onChange={(e) => setFilterYear(e.target.value)}
+                      class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200"
+                    >
+                      <option value="2026">2026 年</option>
+                      <option value="2025">2025 年</option>
+                    </select>
+
+                    {reportType === 'monthly' && (
+                      <select 
+                        value={filterMonth} 
+                        onChange={(e) => setFilterMonth(e.target.value)}
+                        class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200"
+                      >
+                        <option value="01">1 月</option>
+                        <option value="02">2 月</option>
+                        <option value="03">3 月</option>
+                        <option value="04">4 月</option>
+                        <option value="05">5 月</option>
+                        <option value="06">6 月</option>
+                        <option value="07">7 月</option>
+                        <option value="08">8 月</option>
+                        <option value="09">9 月</option>
+                        <option value="10">10 月</option>
+                        <option value="11">11 月</option>
+                        <option value="12">12 月</option>
+                      </select>
+                    )}
+                  </div>
+                )}
+
+                {/* 報表 1：全公司考勤月報表 (清理過的日期與純時間) */}
+                {reportType === 'monthly' && (
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">員工</th>
+                          <th class="py-3 px-4">班次</th>
+                          <th class="py-3 px-4">日期</th>
+                          <th class="py-3 px-4">上班時間</th>
+                          <th class="py-3 px-4">下班時間</th>
+                          <th class="py-3 px-4">總工時</th>
+                          <th class="py-3 px-4">考勤狀態</th>
+                          <th class="py-3 px-4">遲到分鐘</th>
+                          <th class="py-3 px-4">備註</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {logs.filter(l => l.date && l.date.startsWith(`${filterYear}-${filterMonth}`)).length === 0 ? (
+                          <tr>
+                            <td colspan="9" class="py-8 text-center text-xs text-slate-500">該月份尚無打卡紀錄</td>
+                          </tr>
+                        ) : logs.filter(l => l.date && l.date.startsWith(`${filterYear}-${filterMonth}`)).map(log => {
+                          const emp = employees.find(e => e.id === log.empId) || {};
+                          return (
+                            <tr key={log.id} class="hover:bg-slate-800/30">
+                              <td class="py-3 px-4 font-medium text-white flex items-center space-x-2">
+                                <span>{emp.avatar || '👨‍💼'}</span>
+                                <span>{emp.name || log.empName} ({emp.dept || log.dept})</span>
+                              </td>
+                              <td class="py-3 px-4 text-xs font-semibold text-emerald-400">{emp.shift || '09:00 - 18:00'}</td>
+                              <td class="py-3 px-4 font-mono text-slate-300">{cleanDateString(log.date)}</td>
+                              <td class="py-3 px-4 text-emerald-400 font-mono font-semibold">{cleanTimeString(log.checkIn)}</td>
+                              <td class="py-3 px-4 text-amber-400 font-mono font-semibold">{cleanTimeString(log.checkOut)}</td>
+                              <td class="py-3 px-4 font-semibold">{log.hours} 小時</td>
+                              <td class="py-3 px-4">
+                                <span class={`text-xs px-2 py-0.5 rounded-full font-medium ${log.status === 'normal' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                  {log.status === 'normal' ? '正常' : '遲到/異常'}
+                                </span>
+                              </td>
+                              <td class="py-3 px-4 font-bold text-rose-400">{log.lateMinutes ? `${log.lateMinutes} 分鐘` : '-'}</td>
+                              <td class="py-3 px-4 text-xs text-slate-400 truncate max-w-xs">{log.note || '-'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 報表 2：全公司考勤年報表 */}
+                {reportType === 'yearly' && (
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">員工編號</th>
+                          <th class="py-3 px-4">姓名</th>
+                          <th class="py-3 px-4">部門</th>
+                          <th class="py-3 px-4">班次</th>
+                          <th class="py-3 px-4">正常出勤天數</th>
+                          <th class="py-3 px-4">遲到天數/次數</th>
+                          <th class="py-3 px-4">當月總遲到(分鐘)</th>
+                          <th class="py-3 px-4">年度累計總工時</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {employees.map(emp => {
+                          const empYearLogs = logs.filter(l => l.empId === emp.id && l.date && l.date.startsWith(`${filterYear}-`));
+                          const normalDays = empYearLogs.filter(l => l.status === 'normal').length;
+                          const lateDays = empYearLogs.filter(l => l.status === 'late').length;
+                          const totalLateMins = empYearLogs.reduce((sum, l) => sum + (l.lateMinutes || 0), 0);
+                          const totalHours = empYearLogs.reduce((sum, l) => sum + (l.hours || 0), 0).toFixed(1);
+                          return (
+                            <tr key={emp.id} class="hover:bg-slate-800/30">
+                              <td class="py-3 px-4 font-mono text-xs text-slate-400">{emp.id}</td>
+                              <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                                <span>{emp.avatar}</span>
+                                <span>{emp.name}</span>
+                              </td>
+                              <td class="py-3 px-4 text-slate-300">{emp.dept}</td>
+                              <td class="py-3 px-4 text-xs font-semibold text-emerald-400">{emp.shift || '09:00 - 18:00'}</td>
+                              <td class="py-3 px-4 font-semibold text-emerald-400">{normalDays} 天</td>
+                              <td class="py-3 px-4 font-semibold text-amber-400">{lateDays} 次</td>
+                              <td class="py-3 px-4 font-black text-rose-400">{totalLateMins} 分鐘</td>
+                              <td class="py-3 px-4 font-bold text-white">{totalHours} 小時</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 報表 3：請假紀錄表 */}
+                {reportType === 'leave' && (
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">單號</th>
+                          <th class="py-3 px-4">申請人</th>
+                          <th class="py-3 px-4">假別</th>
+                          <th class="py-3 px-4">起訖日期</th>
+                          <th class="py-3 px-4">請假時數</th>
+                          <th class="py-3 px-4">請假事由</th>
+                          <th class="py-3 px-4">審核狀態</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {leaves.filter(l => l.type !== '加班').length === 0 ? (
+                          <tr>
+                            <td colspan="7" class="py-8 text-center text-xs text-slate-500">尚無請假紀錄</td>
+                          </tr>
+                        ) : leaves.filter(l => l.type !== '加班').map(lev => {
+                          const emp = employees.find(e => e.id === lev.empId) || {};
+                          return (
+                            <tr key={lev.id} class="hover:bg-slate-800/30">
+                              <td class="py-3 px-4 font-mono text-xs text-slate-400">{lev.id}</td>
+                              <td class="py-3 px-4 font-medium text-white">{emp.name} ({emp.dept})</td>
+                              <td class="py-3 px-4 font-bold text-blue-300">{lev.type}</td>
+                              <td class="py-3 px-4 text-xs font-mono">{cleanDateString(lev.startDate)} ~ {cleanDateString(lev.endDate)}</td>
+                              <td class="py-3 px-4 font-semibold text-emerald-400">{lev.hours} 小時</td>
+                              <td class="py-3 px-4 text-xs text-slate-300 truncate max-w-xs">{lev.reason}</td>
+                              <td class="py-3 px-4">
+                                <span class={`text-xs px-2 py-0.5 rounded-full font-medium ${lev.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : lev.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                  {lev.status === 'approved' ? '已核准' : lev.status === 'pending' ? '待審核' : '已駁回'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 報表 4：加班明細表 */}
+                {reportType === 'overtime' && (
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">單號</th>
+                          <th class="py-3 px-4">申請人</th>
+                          <th class="py-3 px-4">加班日期</th>
+                          <th class="py-3 px-4">加班時數</th>
+                          <th class="py-3 px-4">加班事由說明</th>
+                          <th class="py-3 px-4">審核狀態</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {leaves.filter(l => l.type === '加班').length === 0 ? (
+                          <tr>
+                            <td colspan="6" class="py-8 text-center text-xs text-slate-500">尚無加班紀錄</td>
+                          </tr>
+                        ) : leaves.filter(l => l.type === '加班').map(lev => {
+                          const emp = employees.find(e => e.id === lev.empId) || {};
+                          return (
+                            <tr key={lev.id} class="hover:bg-slate-800/30">
+                              <td class="py-3 px-4 font-mono text-xs text-slate-400">{lev.id}</td>
+                              <td class="py-3 px-4 font-medium text-white">{emp.name} ({emp.dept})</td>
+                              <td class="py-3 px-4 text-xs font-mono">{cleanDateString(lev.startDate)}</td>
+                              <td class="py-3 px-4 font-bold text-purple-400">{lev.hours} 小時</td>
+                              <td class="py-3 px-4 text-xs text-slate-300 truncate max-w-xs">{lev.reason}</td>
+                              <td class="py-3 px-4">
+                                <span class={`text-xs px-2 py-0.5 rounded-full font-medium ${lev.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : lev.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                  {lev.status === 'approved' ? '已核准' : lev.status === 'pending' ? '待審核' : '已駁回'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* 3. 請假與加班申請 TAB */}
+            {activeTab === 'leave' && (
+              <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-xl font-bold text-white">請假與加班管理</h2>
+                    <p class="text-xs text-slate-400 mt-1">查看假期剩餘額度，並進行線上申請與審核狀態追蹤</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowLeaveModal(true)}
+                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg flex items-center space-x-2"
+                  >
+                    <span>➕ 填寫請假/加班單</span>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="glass-card p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400">特別休假 (特休/年假額度)</p>
+                    <div class="flex items-baseline justify-between mt-2">
+                      <span class="text-2xl font-black text-emerald-400">{currentUser.annualLeave || 10} 天</span>
+                      <span class="text-xs text-slate-500">個人全額</span>
+                    </div>
+                  </div>
+                  <div class="glass-card p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400">普通傷病假額度</p>
+                    <div class="flex items-baseline justify-between mt-2">
+                      <span class="text-2xl font-black text-blue-400">{currentUser.sickLeave || 30} 天</span>
+                      <span class="text-xs text-slate-500">法定上限</span>
+                    </div>
+                  </div>
+                  <div class="glass-card p-5 rounded-2xl">
+                    <p class="text-xs text-slate-400">補休額度 (加班累積)</p>
+                    <div class="flex items-baseline justify-between mt-2">
+                      <span class="text-2xl font-black text-purple-400">{currentUser.compLeave || 0} 小時</span>
+                      <span class="text-xs text-slate-500">可抵換假</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6">
+                  <h3 class="text-base font-bold text-white mb-4">假單 / 加班單申請紀錄</h3>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">單號</th>
+                          <th class="py-3 px-4">申請人</th>
+                          <th class="py-3 px-4">申請類別</th>
+                          <th class="py-3 px-4">起訖日期</th>
+                          <th class="py-3 px-4">時數</th>
+                          <th class="py-3 px-4">事由說明</th>
+                          <th class="py-3 px-4">審核狀態</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {leaves.filter(l => currentUser.isAdmin ? true : l.empId === currentUser.id).length === 0 ? (
+                          <tr>
+                            <td colspan="7" class="py-8 text-center text-xs text-slate-500">目前尚無請假紀錄</td>
+                          </tr>
+                        ) : leaves.filter(l => currentUser.isAdmin ? true : l.empId === currentUser.id).map(lev => {
+                          const emp = employees.find(e => e.id === lev.empId) || {};
+                          return (
+                            <tr key={lev.id} class="hover:bg-slate-800/30">
+                              <td class="py-3 px-4 font-mono text-xs text-slate-400">{lev.id}</td>
+                              <td class="py-3 px-4 font-medium text-white">{emp.name}</td>
+                              <td class="py-3 px-4 font-medium text-slate-200">{lev.type}</td>
+                              <td class="py-3 px-4 text-xs font-mono">{cleanDateString(lev.startDate)} ~ {cleanDateString(lev.endDate)}</td>
+                              <td class="py-3 px-4 font-semibold">{lev.hours} 小時</td>
+                              <td class="py-3 px-4 text-xs text-slate-300">{lev.reason}</td>
+                              <td class="py-3 px-4">
+                                <span class={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                                  lev.status === 'approved' 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                    : lev.status === 'pending'
+                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                }`}>
+                                  {lev.status === 'approved' ? '✅ 已核准' : lev.status === 'pending' ? '⏳ 待審核' : '❌ 已駁回'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. 主管考勤管理台 TAB */}
+            {activeTab === 'admin' && currentUser.isAdmin && (
+              <div class="space-y-6">
+                <div>
+                  <h2 class="text-xl font-bold text-white">HR 主管考勤管理中樞</h2>
+                  <p class="text-xs text-slate-400 mt-1">獨立控制 WiFi / GPS 地點限制、選擇驗證邏輯(AND/OR)、調整員工班次與特休天數</p>
+                </div>
+
+                {/* RESTRICTION MODE SELECTOR (AND / OR) */}
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-l-purple-500 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                      <span>🔀 限制驗證條件邏輯判斷 (AND / OR)</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">當 WiFi 與 GPS 限制皆開啟時，選擇驗證放行條件：</p>
+                  </div>
+
+                  <div class="flex items-center space-x-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800 self-start sm:self-auto">
+                    <button 
+                      onClick={() => setPunchConfig({ ...punchConfig, restrictionLogic: 'AND' })}
+                      class={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                        (punchConfig.restrictionLogic || 'AND') === 'AND' 
+                          ? 'bg-purple-600 text-white shadow-md' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      🔘 AND 模式（兩者皆需滿足）
+                    </button>
+
+                    <button 
+                      onClick={() => setPunchConfig({ ...punchConfig, restrictionLogic: 'OR' })}
+                      class={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                        punchConfig.restrictionLogic === 'OR' 
+                          ? 'bg-purple-600 text-white shadow-md' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      🔘 OR 模式（滿足任意一種即可）
+                    </button>
+                  </div>
+                </div>
+
+                {/* SEPARATELY CONTROLLED WIFI AND GPS RESTRICTION PANEL */}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* WiFi Control Panel */}
+                  <div class="glass-card rounded-2xl p-6 border-l-4 border-l-blue-500">
+                    <div class="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                          <span>📶 WiFi 網路打卡限制</span>
+                          <span class={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${punchConfig.enableWifiRestriction ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'bg-slate-800 text-slate-500'}`}>
+                            {punchConfig.enableWifiRestriction ? '限制已開啟' : '限制已關閉'}
+                          </span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">強制員工需連接公司指定 WiFi 才能打卡</p>
+                      </div>
+
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={punchConfig.enableWifiRestriction} 
+                          onChange={(e) => setPunchConfig({ ...punchConfig, enableWifiRestriction: e.target.checked })}
+                          class="sr-only peer" 
+                        />
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                      </label>
+                    </div>
+
+                    {punchConfig.enableWifiRestriction && (
+                      <div class="pt-3 border-t border-slate-800/80">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">允許之公司 WiFi 名稱 (SSID)：</label>
+                        <input 
+                          type="text" 
+                          value={punchConfig.wifiName}
+                          onChange={(e) => setPunchConfig({ ...punchConfig, wifiName: e.target.value })}
+                          placeholder="例如：Office_5G_WiFi"
+                          class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-blue-300 font-semibold"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* GPS Fence Control Panel */}
+                  <div class="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500">
+                    <div class="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                          <span>📍 GPS 定位圍欄限制</span>
+                          <span class={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${punchConfig.enableGpsRestriction ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-500'}`}>
+                            {punchConfig.enableGpsRestriction ? '限制已開啟' : '限制已關閉'}
+                          </span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">強制員工需在指定的 GPS 座標半徑內打卡</p>
+                      </div>
+
+                      <label class="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={punchConfig.enableGpsRestriction} 
+                          onChange={(e) => setPunchConfig({ ...punchConfig, enableGpsRestriction: e.target.checked })}
+                          class="sr-only peer" 
+                        />
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+
+                    {punchConfig.enableGpsRestriction && (
+                      <div class="space-y-3 pt-3 border-t border-slate-800/80">
+                        <div class="grid grid-cols-2 gap-2">
+                          <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">GPS 緯度 (Lat)：</label>
+                            <input 
+                              type="number" step="0.0001"
+                              value={punchConfig.centerLat}
+                              onChange={(e) => setPunchConfig({ ...punchConfig, centerLat: Number(e.target.value) })}
+                              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">GPS 經度 (Lng)：</label>
+                            <input 
+                              type="number" step="0.0001"
+                              value={punchConfig.centerLng}
+                              onChange={(e) => setPunchConfig({ ...punchConfig, centerLng: Number(e.target.value) })}
+                              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-mono"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-medium text-slate-400 mb-1">允許打卡半徑 (公尺)：</label>
+                          <input 
+                            type="number" min="10" max="5000"
+                            value={punchConfig.allowedRadiusMeters}
+                            onChange={(e) => setPunchConfig({ ...punchConfig, allowedRadiusMeters: Number(e.target.value) })}
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-400 font-bold"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Company Overview Cards */}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="glass-card p-5 rounded-2xl border-l-4 border-l-blue-500">
+                    <p class="text-xs text-slate-400">總員工數</p>
+                    <p class="text-3xl font-black text-white mt-1">{employees.length} 人</p>
+                  </div>
+                  <div class="glass-card p-5 rounded-2xl border-l-4 border-l-emerald-500">
+                    <p class="text-xs text-slate-400">今日出勤記錄</p>
+                    <p class="text-3xl font-black text-emerald-400 mt-1">{logs.filter(l => l.date === todayStr).length} 人</p>
+                  </div>
+                  <div class="glass-card p-5 rounded-2xl border-l-4 border-l-amber-500">
+                    <p class="text-xs text-slate-400">遲到 / 異常人數</p>
+                    <p class="text-3xl font-black text-amber-400 mt-1">
+                      {logs.filter(l => l.status === 'late').length} 人
+                    </p>
+                  </div>
+                  <div class="glass-card p-5 rounded-2xl border-l-4 border-l-purple-500">
+                    <p class="text-xs text-slate-400">請假審核中</p>
+                    <p class="text-3xl font-black text-purple-400 mt-1">
+                      {leaves.filter(l => l.status === 'pending').length} 件
+                    </p>
+                  </div>
+                </div>
+
+                {/* Employee Roster Table with Shift Editing */}
+                <div class="glass-card rounded-2xl p-6">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <div>
+                      <h3 class="text-base font-bold text-white">👨‍💼 員工名冊、工作班次與年假天數設定</h3>
+                      <p class="text-xs text-slate-400 mt-0.5">
+                        {gasUrl ? '💡 已連結 Google 試算表，您亦可直接在 Google 試算表「員工名冊與假額度」分頁中編輯班次，系統將自動同步！' : '您可在本區新增或修改員工資料、工作班次與特休額度'}
+                      </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      {gasUrl && (
+                        <button 
+                          onClick={fetchFromSheet}
+                          disabled={syncingGas}
+                          class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 flex items-center space-x-1"
+                        >
+                          <span>🔄 從試算表重新同步</span>
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => {
+                          setEditingEmp({
+                            id: 'EMP' + String(employees.length + 1).padStart(3, '0'),
+                            username: 'user' + (employees.length + 1),
+                            pass: '123456',
+                            name: '',
+                            role: '專員',
+                            dept: '技術研發部',
+                            avatar: '👨‍💼',
+                            shift: '09:00 - 18:00',
+                            isAdmin: false,
+                            annualLeave: 10,
+                            sickLeave: 30,
+                            compLeave: 0
+                          });
+                          setShowEmpEditModal(true);
+                        }}
+                        class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1"
+                      >
+                        <span>➕ 新增員工資料</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                      <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="py-3 px-4">員工編號</th>
+                          <th class="py-3 px-4">姓名</th>
+                          <th class="py-3 px-4">部門</th>
+                          <th class="py-3 px-4">職稱/職位</th>
+                          <th class="py-3 px-4">工作班次</th>
+                          <th class="py-3 px-4">登入帳號</th>
+                          <th class="py-3 px-4">特休(天)</th>
+                          <th class="py-3 px-4">權限</th>
+                          <th class="py-3 px-4 text-right">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/60">
+                        {employees.map(emp => (
+                          <tr key={emp.id} class="hover:bg-slate-800/30">
+                            <td class="py-3 px-4 font-mono text-xs text-slate-400">{emp.id}</td>
+                            <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                              <span>{emp.avatar}</span>
+                              <span>{emp.name}</span>
+                            </td>
+                            <td class="py-3 px-4 text-slate-300">{emp.dept}</td>
+                            <td class="py-3 px-4 font-semibold text-blue-300">{emp.role}</td>
+                            <td class="py-3 px-4 text-xs font-bold text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded w-fit border border-emerald-500/20">
+                              ⏱️ {emp.shift || '09:00 - 18:00'}
+                            </td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-400">{emp.username}</td>
+                            <td class="py-3 px-4 font-bold text-emerald-400">{emp.annualLeave || 10} 天</td>
+                            <td class="py-3 px-4">
+                              <span class={`text-xs px-2 py-0.5 rounded ${emp.isAdmin ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-800 text-slate-400'}`}>
+                                {emp.isAdmin ? '主管' : '員工'}
+                              </span>
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                              <button 
+                                onClick={() => {
+                                  setEditingEmp(emp);
+                                  setShowEmpEditModal(true);
+                                }}
+                                class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-blue-300 rounded-lg"
+                              >
+                                ✏️ 編輯員工/班次
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Leave Approvals Section */}
+                <div class="glass-card rounded-2xl p-6">
+                  <h3 class="text-base font-bold text-white mb-4">待審核假單列表</h3>
+                  {leaves.filter(l => l.status === 'pending').length === 0 ? (
+                    <p class="text-xs text-slate-500 py-4 text-center">目前無待審核之假單</p>
+                  ) : (
+                    <div class="space-y-3">
+                      {leaves.filter(l => l.status === 'pending').map(lev => {
+                        const emp = employees.find(e => e.id === lev.empId) || {};
+                        return (
+                          <div key={lev.id} class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3">
+                              <span class="text-2xl">{emp.avatar}</span>
+                              <div>
+                                <h4 class="text-sm font-bold text-white">{emp.name} ({emp.dept})</h4>
+                                <p class="text-xs text-slate-400">
+                                  申請【{lev.type}】{cleanDateString(lev.startDate)} ~ {cleanDateString(lev.endDate)} ({lev.hours} 小時)
+                                </p>
+                                <p class="text-xs text-slate-500 mt-0.5">事由：{lev.reason}</p>
+                              </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                              <button 
+                                onClick={() => handleLeaveAudit(lev.id, 'approved')}
+                                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold"
+                              >
+                                批准
+                              </button>
+                              <button 
+                                onClick={() => handleLeaveAudit(lev.id, 'rejected')}
+                                class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold"
+                              >
+                                駁回
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+          </main>
+
+          {/* --- Employee & Shift Edit Modal --- */}
+          {showEmpEditModal && editingEmp && (
+            <div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div class="glass-card max-w-lg w-full rounded-2xl p-6 relative border border-slate-700 shadow-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">
+                  {employees.some(e => e.id === editingEmp.id) ? '編輯員工、工作班次與年假資料' : '新增員工資料'}
+                </h3>
+                
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveEmployee(editingEmp);
+                }} class="space-y-4">
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">員工編號：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.id} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, id: e.target.value })}
+                        required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">員工姓名：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.name} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, name: e.target.value })}
+                        required 
+                        placeholder="請輸入姓名..."
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" 
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">職稱 / 職位：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.role} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, role: e.target.value })}
+                        required 
+                        placeholder="例如：高級工程師..."
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">部門：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.dept} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, dept: e.target.value })}
+                        required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-emerald-400 mb-1">⏱️ 工作班次 (上下班時間)：</label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <select 
+                        value={['09:00 - 18:00', '09:30 - 18:30', '08:30 - 17:30', '10:00 - 19:00'].includes(editingEmp.shift) ? editingEmp.shift : 'custom'}
+                        onChange={(e) => {
+                          if (e.target.value !== 'custom') {
+                            setEditingEmp({ ...editingEmp, shift: e.target.value });
+                          }
+                        }}
+                        class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200"
+                      >
+                        <option value="09:00 - 18:00">標準班 A (09:00 - 18:00)</option>
+                        <option value="09:30 - 18:30">標準班 B (09:30 - 18:30)</option>
+                        <option value="08:30 - 17:30">早班 (08:30 - 17:30)</option>
+                        <option value="10:00 - 19:00">晚班 (10:00 - 19:00)</option>
+                        <option value="custom">自訂班次時間...</option>
+                      </select>
+
+                      <input 
+                        type="text" 
+                        value={editingEmp.shift || '09:00 - 18:00'} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, shift: e.target.value })}
+                        placeholder="例如: 09:00 - 18:00"
+                        class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold font-mono" 
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">登入帳號：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.username} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, username: e.target.value })}
+                        required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">登入密碼：</label>
+                      <input 
+                        type="text" 
+                        value={editingEmp.pass} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, pass: e.target.value })}
+                        required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 font-mono" 
+                      />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">特別休假/年假天數：</label>
+                      <input 
+                        type="number" 
+                        value={editingEmp.annualLeave || 10} 
+                        onChange={(e) => setEditingEmp({ ...editingEmp, annualLeave: Number(e.target.value) })}
+                        required min="0" max="100"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-emerald-400 font-bold" 
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">角色權限：</label>
+                      <select 
+                        value={editingEmp.isAdmin ? 'admin' : 'employee'}
+                        onChange={(e) => setEditingEmp({ ...editingEmp, isAdmin: e.target.value === 'admin' })}
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200"
+                      >
+                        <option value="employee">一般員工</option>
+                        <option value="admin">HR / 管理主管</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button 
+                      type="button" 
+                      onClick={() => { setShowEmpEditModal(false); setEditingEmp(null); }}
+                      class="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-xs font-semibold"
+                    >
+                      取消
+                    </button>
+                    <button 
+                      type="submit"
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold"
+                    >
+                      儲存變更
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* --- Google Apps Script Settings Modal --- */}
+          {showSettingsModal && currentUser.isAdmin && (
+            <div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div class="glass-card max-w-lg w-full rounded-2xl p-6 relative border border-slate-700 shadow-2xl">
+                <h3 class="text-lg font-bold text-white mb-2">Google 試算表 (Apps Script) 同步設定</h3>
+                <p class="text-xs text-slate-400 mb-4">
+                  部署 <code class="text-blue-400 bg-slate-900 px-1 py-0.5 rounded">GoogleAppsScript.gs</code> 後，將獲得的 Web App URL 貼於下方即可啟動自動同步！
+                </p>
+
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Google Apps Script Web App URL：</label>
+                    <input 
+                      type="url" 
+                      value={gasUrl}
+                      onChange={(e) => setGasUrl(e.target.value)}
+                      placeholder="https://script.google.com/macros/s/.../exec"
+                      class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-mono text-blue-300 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
+                    <p class="font-semibold text-slate-300">💡 雙向同步說明：</p>
+                    <p>1. 連線後，您在 Google 試算表中修改「考勤紀錄」或「員工名冊與假額度」，網頁端皆會跟著同步更新！</p>
+                    <p>2. 部署時請務必將【誰有存取權】設定為【任何人】(Anyone)。</p>
+                  </div>
+
+                  <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button 
+                      onClick={() => setShowSettingsModal(false)}
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold"
+                    >
+                      儲存設定
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- Leave Request Form Modal --- */}
+          {showLeaveModal && (
+            <div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div class="glass-card max-w-lg w-full rounded-2xl p-6 relative border border-slate-700 shadow-2xl">
+                <h3 class="text-lg font-bold text-white mb-4">填寫請假 / 加班申請單</h3>
+                
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.target);
+                  handleAddLeave({
+                    type: fd.get('type'),
+                    startDate: fd.get('startDate'),
+                    endDate: fd.get('endDate'),
+                    hours: Number(fd.get('hours')) || 8,
+                    reason: fd.get('reason')
+                  });
+                }} class="space-y-4">
+
+                  <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">申請種類：</label>
+                    <select name="type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200">
+                      <option value="特休">特別休假 (特休/年假)</option>
+                      <option value="事假">事假</option>
+                      <option value="病假">普通傷病假</option>
+                      <option value="婚喪假">婚喪假</option>
+                      <option value="加班">加班登記 (換補休)</option>
+                    </select>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">開始日期：</label>
+                      <input type="date" name="startDate" required defaultValue={todayStr} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-slate-400 mb-1">結束日期：</label>
+                      <input type="date" name="endDate" required defaultValue={todayStr} class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">總申請時數 (小時)：</label>
+                    <input type="number" name="hours" defaultValue="8" min="1" max="80" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200" />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">事由 / 說明：</label>
+                    <textarea name="reason" required rows="3" placeholder="請詳細寫明申請事由..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200"></textarea>
+                  </div>
+
+                  <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowLeaveModal(false)}
+                      class="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-xs font-semibold"
+                    >
+                      取消
+                    </button>
+                    <button 
+                      type="submit"
+                      class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold"
+                    >
+                      送出申請
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // Render React Root
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
